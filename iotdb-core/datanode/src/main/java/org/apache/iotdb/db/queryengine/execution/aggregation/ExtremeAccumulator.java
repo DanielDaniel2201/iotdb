@@ -24,12 +24,17 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.statistics.Statistics;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
 import org.apache.iotdb.tsfile.utils.TsPrimitiveType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class ExtremeAccumulator implements Accumulator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CountAccumulator.class);
 
   private final TSDataType seriesDataType;
   private final TsPrimitiveType extremeResult;
@@ -226,6 +231,50 @@ public class ExtremeAccumulator implements Accumulator {
   }
 
   private void addIntInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+          curIndex + curPatternCount - 1 <= lastIndex
+              ? curPatternCount
+              : curPatternCount + curIndex - lastIndex;
+          int curValue = -1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              curValue = curPattern.getInt(0);
+              updateIntResult(curValue);
+              curIndex = curIndex - j + curPatternCount;
+              break;
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                curValue = curPattern.getInt(j);
+                updateIntResult(curValue);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+    // **************************************************
+    LOGGER.info("non-RLE-addInput branch is chosen");
+    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -250,6 +299,50 @@ public class ExtremeAccumulator implements Accumulator {
   }
 
   private void addLongInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+          curIndex + curPatternCount - 1 <= lastIndex
+              ? curPatternCount
+              : curPatternCount + curIndex - lastIndex;
+          long curValue = -1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              curValue = curPattern.getLong(0);
+              updateLongResult(curValue);
+              curIndex = curIndex - j + curPatternCount;
+              break;
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                curValue = curPattern.getLong(j);
+                updateLongResult(curValue);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+    // **************************************************
+    LOGGER.info("non-RLE-addInput branch is chosen");
+    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -274,6 +367,50 @@ public class ExtremeAccumulator implements Accumulator {
   }
 
   private void addFloatInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+          curIndex + curPatternCount - 1 <= lastIndex
+              ? curPatternCount
+              : curPatternCount + curIndex - lastIndex;
+          float curValue = -1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              curValue = curPattern.getFloat(0);
+              updateFloatResult(curValue);
+              curIndex = curIndex - j + curPatternCount;
+              break;
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                curValue = curPattern.getFloat(j);
+                updateFloatResult(curValue);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+    // **************************************************
+    LOGGER.info("non-RLE-addInput branch is chosen");
+    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -298,6 +435,50 @@ public class ExtremeAccumulator implements Accumulator {
   }
 
   private void addDoubleInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+          curIndex + curPatternCount - 1 <= lastIndex
+              ? curPatternCount
+              : curPatternCount + curIndex - lastIndex;
+          double curValue = -1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              curValue = curPattern.getDouble(0);
+              updateDoubleResult(curValue);
+              curIndex = curIndex - j + curPatternCount;
+              break;
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                curValue = curPattern.getDouble(j);
+                updateDoubleResult(curValue);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+    // **************************************************
+    LOGGER.info("non-RLE-addInput branch is chosen");
+    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;

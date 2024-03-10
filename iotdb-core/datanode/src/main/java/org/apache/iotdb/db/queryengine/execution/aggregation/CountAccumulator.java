@@ -23,6 +23,8 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.statistics.Statistics;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
 
 import org.slf4j.Logger;
@@ -42,8 +44,43 @@ public class CountAccumulator implements Accumulator {
   // Column should be like: | Time | Value |
   @Override
   public void addInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
+          if (!curPattern.mayHaveNull()
+              && (bitMap == null || bitMap.isAllMarked())) {
+                countValue += curPatternCount;
+                curIndex += curPatternCount;
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                countValue++;
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+    // **************************************************
+    LOGGER.info("non-RLE-addInput branch is chosen");
+    // **************************************************
     int curPositionCount = column[0].getPositionCount();
-
     if (!column[1].mayHaveNull()
         && lastIndex == curPositionCount - 1
         && ((bitMap == null) || bitMap.isAllMarked())) {

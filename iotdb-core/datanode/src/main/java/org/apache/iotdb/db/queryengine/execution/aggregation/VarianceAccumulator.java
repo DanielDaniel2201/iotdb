@@ -24,15 +24,21 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.statistics.Statistics;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.utils.BitMap;
 import org.apache.iotdb.tsfile.utils.BytesUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class VarianceAccumulator implements Accumulator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CountAccumulator.class);
+
   public enum VarianceType {
     STDDEV_POP,
     STDDEV_SAMP,
@@ -212,7 +218,56 @@ public class VarianceAccumulator implements Accumulator {
   }
 
   private void addIntInput(Column[] columns, BitMap bitmap, int lastIndex) {
+    if (columns[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = columns[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              validCount++;
+            }
+            int value = curPattern.getInt(0);
+            count += validCount;
+            double delta = value - mean;
+            mean += delta / count;
+            m2 += delta * (value - mean);
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                int value = curPattern.getInt(j);
+                count++;
+                double delta = value - mean;
+                mean += delta / count;
+                m2 += delta * (value - mean);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
+      // **************************************************
+      LOGGER.info("non-RLE-addInput branch is chosen");
+      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
@@ -227,7 +282,56 @@ public class VarianceAccumulator implements Accumulator {
   }
 
   private void addLongInput(Column[] columns, BitMap bitmap, int lastIndex) {
+    if (columns[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = columns[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              validCount++;
+            }
+            long value = curPattern.getLong(0);
+            count += validCount;
+            double delta = value - mean;
+            mean += delta / count;
+            m2 += delta * (value - mean);
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                long value = curPattern.getLong(j);
+                count++;
+                double delta = value - mean;
+                mean += delta / count;
+                m2 += delta * (value - mean);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
+      // **************************************************
+      LOGGER.info("non-RLE-addInput branch is chosen");
+      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
@@ -242,7 +346,56 @@ public class VarianceAccumulator implements Accumulator {
   }
 
   private void addFloatInput(Column[] columns, BitMap bitmap, int lastIndex) {
+    if (columns[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = columns[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              validCount++;
+            }
+            float value = curPattern.getFloat(0);
+            count += validCount;
+            double delta = value - mean;
+            mean += delta / count;
+            m2 += delta * (value - mean);
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                float value = curPattern.getFloat(j);
+                count++;
+                double delta = value - mean;
+                mean += delta / count;
+                m2 += delta * (value - mean);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
+      // **************************************************
+      LOGGER.info("non-RLE-addInput branch is chosen");
+      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
@@ -257,7 +410,56 @@ public class VarianceAccumulator implements Accumulator {
   }
 
   private void addDoubleInput(Column[] columns, BitMap bitmap, int lastIndex) {
+    if (columns[1] instanceof RLEColumn) {
+      // **********************************************
+      LOGGER.info("RLE-addInput branch is chosen");
+      // **********************************************
+      int curIndex = 0;
+      int positionCount = columns[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              validCount++;
+            }
+            double value = curPattern.getDouble(0);
+            count += validCount;
+            double delta = value - mean;
+            mean += delta / count;
+            m2 += delta * (value - mean);
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
+              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                double value = curPattern.getDouble(j);
+                count++;
+                double delta = value - mean;
+                mean += delta / count;
+                m2 += delta * (value - mean);
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
+      // **************************************************
+      LOGGER.info("non-RLE-addInput branch is chosen");
+      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
