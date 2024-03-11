@@ -79,7 +79,6 @@ public class TimeDurationAccumulator implements Accumulator {
               }
             }
           }
-
         }
       }
       return;
