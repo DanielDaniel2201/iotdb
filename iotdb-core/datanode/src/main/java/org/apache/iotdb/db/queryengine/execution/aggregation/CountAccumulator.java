@@ -55,15 +55,16 @@ public class CountAccumulator implements Accumulator {
         if (!((RLEColumn) column[1]).isNullRLE(i)) {
           RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
           curPatternCount = curPattern.getPositionCount();
-          curPatternCount = curIndex + curPatternCount - 1 <= lastIndex
-              ? curPatternCount
-              : curPatternCount + curIndex - lastIndex;
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
           if (!curPattern.mayHaveNull()
               && (bitMap == null
-              || bitMap.isAllMarked()
-              || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-                countValue += curPatternCount;
-                curIndex += curPatternCount;
+                  || bitMap.isAllMarked()
+                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
+            countValue += curPatternCount;
+            curIndex += curPatternCount;
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitMap != null && !bitMap.isMarked(j)) {
@@ -158,7 +159,7 @@ public class CountAccumulator implements Accumulator {
 
   @Override
   public TSDataType[] getIntermediateType() {
-    return new TSDataType[] { TSDataType.INT64 };
+    return new TSDataType[] {TSDataType.INT64};
   }
 
   @Override

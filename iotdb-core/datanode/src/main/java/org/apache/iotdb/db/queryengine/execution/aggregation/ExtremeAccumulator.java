@@ -28,6 +28,7 @@ import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
 import org.apache.iotdb.tsfile.utils.TsPrimitiveType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -243,9 +244,9 @@ public class ExtremeAccumulator implements Accumulator {
           RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
           curPatternCount = curPattern.getPositionCount();
           curPatternCount =
-          curIndex + curPatternCount - 1 <= lastIndex
-              ? curPatternCount
-              : curPatternCount + curIndex - lastIndex;
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
           int curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
@@ -311,9 +312,9 @@ public class ExtremeAccumulator implements Accumulator {
           RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
           curPatternCount = curPattern.getPositionCount();
           curPatternCount =
-          curIndex + curPatternCount - 1 <= lastIndex
-              ? curPatternCount
-              : curPatternCount + curIndex - lastIndex;
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
           long curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
@@ -379,9 +380,9 @@ public class ExtremeAccumulator implements Accumulator {
           RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
           curPatternCount = curPattern.getPositionCount();
           curPatternCount =
-          curIndex + curPatternCount - 1 <= lastIndex
-              ? curPatternCount
-              : curPatternCount + curIndex - lastIndex;
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
           float curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
@@ -447,9 +448,9 @@ public class ExtremeAccumulator implements Accumulator {
           RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
           curPatternCount = curPattern.getPositionCount();
           curPatternCount =
-          curIndex + curPatternCount - 1 <= lastIndex
-              ? curPatternCount
-              : curPatternCount + curIndex - lastIndex;
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : curPatternCount + curIndex - lastIndex;
           double curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {

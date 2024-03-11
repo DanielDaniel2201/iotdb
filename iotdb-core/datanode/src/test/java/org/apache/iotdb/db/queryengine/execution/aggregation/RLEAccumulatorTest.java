@@ -26,14 +26,11 @@ import org.apache.iotdb.tsfile.file.metadata.statistics.TimeStatistics;
 import org.apache.iotdb.tsfile.read.common.block.TsBlock;
 import org.apache.iotdb.tsfile.read.common.block.TsBlockBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.BinaryColumnBuilder;
-import org.apache.iotdb.tsfile.read.common.block.column.BooleanColumn;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.DoubleColumn;
 import org.apache.iotdb.tsfile.read.common.block.column.DoubleColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.LongColumnBuilder;
-import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
-import org.apache.iotdb.tsfile.read.common.block.column.RLEColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.read.common.block.column.TimeColumnBuilder;
 import org.apache.iotdb.tsfile.utils.Binary;
@@ -72,7 +69,8 @@ public class RLEAccumulatorTest {
     finalValueSum = 0;
     List<TSDataType> dataTypes = new ArrayList<>();
     dataTypes.add(TSDataType.DOUBLE);
-    TsBlockBuilder tsBlockBuilder = new TsBlockBuilder(Collections.singletonList(TSDataType.RLEPATTERN));
+    TsBlockBuilder tsBlockBuilder =
+        new TsBlockBuilder(Collections.singletonList(TSDataType.RLEPATTERN));
     TimeColumnBuilder timeColumnBuilder = tsBlockBuilder.getTimeColumnBuilder();
     ColumnBuilder[] columnBuilders = tsBlockBuilder.getValueColumnBuilders();
 
@@ -81,13 +79,17 @@ public class RLEAccumulatorTest {
       int positionCount = 10;
       RLEPatternColumn column;
       if (j % 3 != 0) {
-        column = new RLEPatternColumn(
-            new DoubleColumn(1, Optional.empty(), new double[] { index }), positionCount, 0);
+        column =
+            new RLEPatternColumn(
+                new DoubleColumn(1, Optional.empty(), new double[] {index}), positionCount, 0);
         finalValueSum += index * positionCount;
       } else {
-        column = new RLEPatternColumn(
-            new DoubleColumn(positionCount, Optional.empty(), generateArrayDouble(positionCount, index)), positionCount,
-            1);
+        column =
+            new RLEPatternColumn(
+                new DoubleColumn(
+                    positionCount, Optional.empty(), generateArrayDouble(positionCount, index)),
+                positionCount,
+                1);
       }
 
       for (int i = 0; i < positionCount; i++, index++) {
@@ -112,12 +114,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void avgAccumulatorTest() {
-    Accumulator avgAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.AVG,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator avgAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.AVG,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.INT64, avgAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, avgAccumulator.getIntermediateType()[1]);
     Assert.assertEquals(TSDataType.DOUBLE, avgAccumulator.getFinalType());
@@ -143,14 +146,14 @@ public class RLEAccumulatorTest {
 
     // add intermediate result as input
     avgAccumulator.addIntermediate(
-        new Column[] { intermediateResult[0].build(), intermediateResult[1].build() });
+        new Column[] {intermediateResult[0].build(), intermediateResult[1].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     avgAccumulator.outputFinal(finalResult);
     Assert.assertEquals(finalValueSum / 1000, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
     avgAccumulator.removeIntermediate(
-        new Column[] { intermediateResult[0].build(), intermediateResult[1].build() });
+        new Column[] {intermediateResult[0].build(), intermediateResult[1].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     avgAccumulator.outputFinal(finalResult);
     Assert.assertEquals(finalValueSum / 1000, finalResult.build().getDouble(0), 0.001);
@@ -164,12 +167,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void countAccumulatorTest() {
-    Accumulator countAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.COUNT,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator countAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.COUNT,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.INT64, countAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.INT64, countAccumulator.getFinalType());
     // check returning null while no data
@@ -189,13 +193,13 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(1000, intermediateResult[0].build().getLong(0));
 
     // add intermediate result as input
-    countAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    countAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new LongColumnBuilder(null, 1);
     countAccumulator.outputFinal(finalResult);
     Assert.assertEquals(2000, finalResult.build().getLong(0));
 
     // test remove partial result interface
-    countAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    countAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new LongColumnBuilder(null, 1);
     countAccumulator.outputFinal(finalResult);
     Assert.assertEquals(1000, finalResult.build().getLong(0), 0.001);
@@ -209,12 +213,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void countTimeAccumulatorTest() {
-    Accumulator countTimeAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.COUNT_TIME,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator countTimeAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.COUNT_TIME,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.INT64, countTimeAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.INT64, countTimeAccumulator.getFinalType());
     // check returning null while no data
@@ -235,7 +240,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(1000, intermediateResult[0].build().getLong(0));
 
     // add intermediate result as input
-    countTimeAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    countTimeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new LongColumnBuilder(null, 1);
     countTimeAccumulator.outputFinal(finalResult);
     Assert.assertEquals(2000, finalResult.build().getLong(0));
@@ -251,12 +256,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void extremeAccumulatorTest() {
-    Accumulator extremeAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.EXTREME,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator extremeAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.EXTREME,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.DOUBLE, extremeAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, extremeAccumulator.getFinalType());
     // check returning null while no data
@@ -276,7 +282,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(99d, intermediateResult[0].build().getDouble(0), 0.001);
 
     // add intermediate result as input
-    extremeAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    extremeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
     Assert.assertEquals(99d, finalResult.build().getDouble(0), 0.001);
@@ -290,12 +296,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void firstValueAccumulatorTest() {
-    Accumulator firstValueAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.FIRST_VALUE,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator firstValueAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.FIRST_VALUE,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.DOUBLE, firstValueAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.INT64, firstValueAccumulator.getIntermediateType()[1]);
     Assert.assertEquals(TSDataType.DOUBLE, firstValueAccumulator.getFinalType());
@@ -321,7 +328,7 @@ public class RLEAccumulatorTest {
 
     // add intermediate result as input
     firstValueAccumulator.addIntermediate(
-        new Column[] { intermediateResult[0].build(), intermediateResult[1].build() });
+        new Column[] {intermediateResult[0].build(), intermediateResult[1].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     firstValueAccumulator.outputFinal(finalResult);
     Assert.assertEquals(0L, finalResult.build().getDouble(0), 0.001);
@@ -335,12 +342,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void lastValueAccumulatorTest() {
-    Accumulator lastValueAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.LAST_VALUE,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator lastValueAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.LAST_VALUE,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.DOUBLE, lastValueAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.INT64, lastValueAccumulator.getIntermediateType()[1]);
     Assert.assertEquals(TSDataType.DOUBLE, lastValueAccumulator.getFinalType());
@@ -365,7 +373,7 @@ public class RLEAccumulatorTest {
 
     // add intermediate result as input
     lastValueAccumulator.addIntermediate(
-        new Column[] { intermediateResult[0].build(), intermediateResult[1].build() });
+        new Column[] {intermediateResult[0].build(), intermediateResult[1].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     lastValueAccumulator.outputFinal(finalResult);
     Assert.assertEquals(99L, finalResult.build().getDouble(0), 0.001);
@@ -379,12 +387,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void maxTimeAccumulatorTest() {
-    Accumulator maxTimeAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.MAX_TIME,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator maxTimeAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.MAX_TIME,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.INT64, maxTimeAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.INT64, maxTimeAccumulator.getFinalType());
     // check returning null while no data
@@ -404,7 +413,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(99, intermediateResult[0].build().getLong(0));
 
     // add intermediate result as input
-    maxTimeAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    maxTimeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new LongColumnBuilder(null, 1);
     maxTimeAccumulator.outputFinal(finalResult);
     Assert.assertEquals(99, finalResult.build().getLong(0));
@@ -418,12 +427,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void minTimeAccumulatorTest() {
-    Accumulator minTimeAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.MIN_TIME,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator minTimeAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.MIN_TIME,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.INT64, minTimeAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.INT64, minTimeAccumulator.getFinalType());
     // check returning null while no data
@@ -443,7 +453,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(0, intermediateResult[0].build().getLong(0));
 
     // add intermediate result as input
-    minTimeAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    minTimeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new LongColumnBuilder(null, 1);
     minTimeAccumulator.outputFinal(finalResult);
     Assert.assertEquals(0, finalResult.build().getLong(0));
@@ -457,12 +467,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void maxValueAccumulatorTest() {
-    Accumulator extremeAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.MAX_VALUE,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator extremeAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.MAX_VALUE,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.DOUBLE, extremeAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, extremeAccumulator.getFinalType());
     // check returning null while no data
@@ -482,7 +493,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(99d, intermediateResult[0].build().getDouble(0), 0.001);
 
     // add intermediate result as input
-    extremeAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    extremeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
     Assert.assertEquals(99d, finalResult.build().getDouble(0), 0.001);
@@ -496,12 +507,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void minValueAccumulatorTest() {
-    Accumulator extremeAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.MIN_VALUE,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator extremeAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.MIN_VALUE,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.DOUBLE, extremeAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, extremeAccumulator.getFinalType());
     // check returning null while no data
@@ -521,7 +533,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(0d, intermediateResult[0].build().getDouble(0), 0.001);
 
     // add intermediate result as input
-    extremeAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    extremeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
     Assert.assertEquals(0d, finalResult.build().getDouble(0), 0.001);
@@ -535,12 +547,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void sumAccumulatorTest() {
-    Accumulator sumAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.SUM,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator sumAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.SUM,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     Assert.assertEquals(TSDataType.DOUBLE, sumAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, sumAccumulator.getFinalType());
     // check returning null while no data
@@ -560,13 +573,13 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(finalValueSum, intermediateResult[0].build().getDouble(0), 0.001);
 
     // add intermediate result as input
-    sumAccumulator.addIntermediate(new Column[] { intermediateResult[0].build() });
+    sumAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     sumAccumulator.outputFinal(finalResult);
     Assert.assertEquals(finalValueSum * 2, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    sumAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    sumAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     sumAccumulator.outputFinal(finalResult);
     Assert.assertEquals(finalValueSum, finalResult.build().getDouble(0), 0.001);
@@ -580,12 +593,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void stddevAccumulatorTest() {
-    Accumulator stddevAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.STDDEV,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator stddevAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.STDDEV,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     // check intermediate type and final type
     Assert.assertEquals(TSDataType.TEXT, stddevAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, stddevAccumulator.getFinalType());
@@ -618,14 +632,14 @@ public class RLEAccumulatorTest {
 
     stddevAccumulator.addIntermediate(
         new Column[] {
-            intermediateResult[0].build(),
+          intermediateResult[0].build(),
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevAccumulator.outputFinal(finalResult);
     Assert.assertEquals(28.938, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    stddevAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    stddevAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevAccumulator.outputFinal(finalResult);
     Assert.assertEquals(29.011491975882016, finalResult.build().getDouble(0), 0.001);
@@ -633,12 +647,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void stddevPopAccumulatorTest() {
-    Accumulator stddevPopAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.STDDEV_POP,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator stddevPopAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.STDDEV_POP,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     // check intermediate type and final type
     Assert.assertEquals(TSDataType.TEXT, stddevPopAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, stddevPopAccumulator.getFinalType());
@@ -664,14 +679,14 @@ public class RLEAccumulatorTest {
 
     stddevPopAccumulator.addIntermediate(
         new Column[] {
-            intermediateResult[0].build(),
+          intermediateResult[0].build(),
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevPopAccumulator.outputFinal(finalResult);
     Assert.assertEquals(28.866, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    stddevPopAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    stddevPopAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevPopAccumulator.outputFinal(finalResult);
     Assert.assertEquals(28.86607004772212, finalResult.build().getDouble(0), 0.001);
@@ -679,12 +694,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void stddevSampAccumulatorTest() {
-    Accumulator stddevSampAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.STDDEV_SAMP,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator stddevSampAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.STDDEV_SAMP,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     // check intermediate type and final type
     Assert.assertEquals(TSDataType.TEXT, stddevSampAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, stddevSampAccumulator.getFinalType());
@@ -717,14 +733,14 @@ public class RLEAccumulatorTest {
 
     stddevSampAccumulator.addIntermediate(
         new Column[] {
-            intermediateResult[0].build(),
+          intermediateResult[0].build(),
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevSampAccumulator.outputFinal(finalResult);
     Assert.assertEquals(28.938, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    stddevSampAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    stddevSampAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevSampAccumulator.outputFinal(finalResult);
     Assert.assertEquals(29.011491975882016, finalResult.build().getDouble(0), 0.001);
@@ -732,12 +748,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void varianceAccumulatorTest() {
-    Accumulator varianceAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.VARIANCE,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator varianceAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.VARIANCE,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     // check intermediate type and final type
     Assert.assertEquals(TSDataType.TEXT, varianceAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, varianceAccumulator.getFinalType());
@@ -770,14 +787,14 @@ public class RLEAccumulatorTest {
 
     varianceAccumulator.addIntermediate(
         new Column[] {
-            intermediateResult[0].build(),
+          intermediateResult[0].build(),
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     varianceAccumulator.outputFinal(finalResult);
     Assert.assertEquals(837.437, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    varianceAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    varianceAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     varianceAccumulator.outputFinal(finalResult);
     Assert.assertEquals(841.6666666666666, finalResult.build().getDouble(0), 0.001);
@@ -785,12 +802,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void varPopAccumulatorTest() {
-    Accumulator varPopAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.VAR_POP,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator varPopAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.VAR_POP,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     // check intermediate type and final type
     Assert.assertEquals(TSDataType.TEXT, varPopAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, varPopAccumulator.getFinalType());
@@ -816,14 +834,14 @@ public class RLEAccumulatorTest {
 
     varPopAccumulator.addIntermediate(
         new Column[] {
-            intermediateResult[0].build(),
+          intermediateResult[0].build(),
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     varPopAccumulator.outputFinal(finalResult);
     Assert.assertEquals(833.25, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    varPopAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    varPopAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     varPopAccumulator.outputFinal(finalResult);
     Assert.assertEquals(833.25, finalResult.build().getDouble(0), 0.001);
@@ -831,12 +849,13 @@ public class RLEAccumulatorTest {
 
   @Test
   public void varSampAccumulatorTest() {
-    Accumulator varSampAccumulator = AccumulatorFactory.createAccumulator(
-        TAggregationType.VAR_SAMP,
-        TSDataType.DOUBLE,
-        Collections.emptyList(),
-        Collections.emptyMap(),
-        true);
+    Accumulator varSampAccumulator =
+        AccumulatorFactory.createAccumulator(
+            TAggregationType.VAR_SAMP,
+            TSDataType.DOUBLE,
+            Collections.emptyList(),
+            Collections.emptyMap(),
+            true);
     // check intermediate type and final type
     Assert.assertEquals(TSDataType.TEXT, varSampAccumulator.getIntermediateType()[0]);
     Assert.assertEquals(TSDataType.DOUBLE, varSampAccumulator.getFinalType());
@@ -869,14 +888,14 @@ public class RLEAccumulatorTest {
 
     varSampAccumulator.addIntermediate(
         new Column[] {
-            intermediateResult[0].build(),
+          intermediateResult[0].build(),
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     varSampAccumulator.outputFinal(finalResult);
     Assert.assertEquals(837.437, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
-    varSampAccumulator.removeIntermediate(new Column[] { intermediateResult[0].build() });
+    varSampAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     varSampAccumulator.outputFinal(finalResult);
     Assert.assertEquals(841.6666666666666, finalResult.build().getDouble(0), 0.001);

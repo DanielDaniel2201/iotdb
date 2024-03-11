@@ -163,15 +163,13 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : curPatternCount + curIndex - lastIndex;
-          if (!curPattern.mayHaveNull()
+          if (curPattern.isRLEMode()
               && (bitMap == null
-              || bitMap.isAllMarked()
-              || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-                if (curPattern.isRLEMode()) {
-                  initResult = true;
-                  sumValue += curPatternCount * curPattern.getInt(0);
-                  curIndex += curPatternCount;
-                }
+                  || bitMap.isAllMarked()
+                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
+            initResult = true;
+            sumValue += curPatternCount * curPattern.getInt(0);
+            curIndex += curPatternCount;
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
@@ -211,15 +209,13 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : curPatternCount + curIndex - lastIndex;
-          if (!curPattern.mayHaveNull()
+          if (curPattern.isRLEMode()
               && (bitMap == null
-              || bitMap.isAllMarked()
-              || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-                if (curPattern.isRLEMode()) {
-                  initResult = true;
-                  sumValue += curPatternCount * curPattern.getLong(0);
-                  curIndex += curPatternCount;
-                }
+                  || bitMap.isAllMarked()
+                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
+            initResult = true;
+            sumValue += curPatternCount * curPattern.getLong(0);
+            curIndex += curPatternCount;
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
@@ -259,15 +255,13 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : curPatternCount + curIndex - lastIndex;
-          if (!curPattern.mayHaveNull()
+          if (curPattern.isRLEMode()
               && (bitMap == null
-              || bitMap.isAllMarked()
-              || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-                if (curPattern.isRLEMode()) {
-                  initResult = true;
-                  sumValue += curPatternCount * curPattern.getFloat(0);
-                  curIndex += curPatternCount;
-                }
+                  || bitMap.isAllMarked()
+                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
+            initResult = true;
+            sumValue += curPatternCount * curPattern.getFloat(0);
+            curIndex += curPatternCount;
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
@@ -307,15 +301,13 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : curPatternCount + curIndex - lastIndex;
-          if (!curPattern.mayHaveNull()
+          if (curPattern.isRLEMode()
               && (bitMap == null
-              || bitMap.isAllMarked()
-              || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-                if (curPattern.isRLEMode()) {
-                  initResult = true;
-                  sumValue += curPatternCount * curPattern.getDouble(0);
-                  curIndex += curPatternCount;
-                }
+                  || bitMap.isAllMarked()
+                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
+            initResult = true;
+            sumValue += curPatternCount * curPattern.getDouble(0);
+            curIndex += curPatternCount;
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {

@@ -29,6 +29,7 @@ import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.utils.BitMap;
 import org.apache.iotdb.tsfile.utils.BytesUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
