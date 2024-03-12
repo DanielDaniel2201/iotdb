@@ -51,7 +51,7 @@ public class CountTimeAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           if (bitMap == null
               || bitMap.isAllMarked()
               || bitMap.getRegion(curIndex, curPatternCount).isAllMarked()) {

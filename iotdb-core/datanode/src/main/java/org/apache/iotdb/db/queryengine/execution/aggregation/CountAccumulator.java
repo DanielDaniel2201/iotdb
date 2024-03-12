@@ -58,7 +58,7 @@ public class CountAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           if (!curPattern.mayHaveNull()
               && (bitMap == null
                   || bitMap.isAllMarked()
@@ -67,7 +67,7 @@ public class CountAccumulator implements Accumulator {
             curIndex += curPatternCount;
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(j)) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
                 continue;
               }
               if (!curPattern.isNull(j)) {

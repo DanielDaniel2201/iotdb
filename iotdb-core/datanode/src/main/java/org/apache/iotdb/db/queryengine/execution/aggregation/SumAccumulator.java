@@ -162,7 +162,7 @@ public class SumAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           if (curPattern.isRLEMode()
               && (bitMap == null
                   || bitMap.isAllMarked()
@@ -208,7 +208,7 @@ public class SumAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           if (curPattern.isRLEMode()
               && (bitMap == null
                   || bitMap.isAllMarked()
@@ -254,7 +254,7 @@ public class SumAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           if (curPattern.isRLEMode()
               && (bitMap == null
                   || bitMap.isAllMarked()
@@ -300,7 +300,7 @@ public class SumAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           if (curPattern.isRLEMode()
               && (bitMap == null
                   || bitMap.isAllMarked()

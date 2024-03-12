@@ -20,12 +20,47 @@
 package org.apache.iotdb.db.queryengine.execution.aggregation;
 
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
 
 public class MinTimeDescAccumulator extends MinTimeAccumulator {
 
   @Override
   public void addInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateMinTime(column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j <= lastIndex; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateMinTime(column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;

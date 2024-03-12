@@ -21,6 +21,8 @@ package org.apache.iotdb.db.queryengine.execution.aggregation;
 
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
 
 public class FirstValueDescAccumulator extends FirstValueAccumulator {
@@ -37,6 +39,39 @@ public class FirstValueDescAccumulator extends FirstValueAccumulator {
   // Don't break in advance
   @Override
   protected void addIntInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateIntFirstValue(curPattern.getInt(0), column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateIntFirstValue(curPattern.getInt(j), column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -49,6 +84,39 @@ public class FirstValueDescAccumulator extends FirstValueAccumulator {
 
   @Override
   protected void addLongInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateLongFirstValue(curPattern.getLong(0), column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateLongFirstValue(curPattern.getLong(j), column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -61,6 +129,39 @@ public class FirstValueDescAccumulator extends FirstValueAccumulator {
 
   @Override
   protected void addFloatInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateFloatFirstValue(curPattern.getFloat(0), column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateFloatFirstValue(curPattern.getFloat(j), column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -73,6 +174,39 @@ public class FirstValueDescAccumulator extends FirstValueAccumulator {
 
   @Override
   protected void addDoubleInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateDoubleFirstValue(curPattern.getDouble(0), column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateDoubleFirstValue(curPattern.getDouble(j), column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -85,6 +219,39 @@ public class FirstValueDescAccumulator extends FirstValueAccumulator {
 
   @Override
   protected void addBooleanInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateBooleanFirstValue(curPattern.getBoolean(0), column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateBooleanFirstValue(curPattern.getBoolean(j), column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -97,6 +264,39 @@ public class FirstValueDescAccumulator extends FirstValueAccumulator {
 
   @Override
   protected void addBinaryInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      int curIndex = 0;
+      int positionCount = column[1].getPositionCount();
+      int curPatternCount = 0;
+      for (int i = 0; i < positionCount; i++) {
+        if (!((RLEColumn) column[1]).isNullRLE(i)) {
+          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+          curPatternCount = curPattern.getPositionCount();
+          curPatternCount =
+              curIndex + curPatternCount - 1 <= lastIndex
+                  ? curPatternCount
+                  : lastIndex - curIndex + 1;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              updateBinaryFirstValue(curPattern.getBinary(0), column[0].getLong(curIndex));
+            }
+          } else {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              if (!curPattern.isNull(j)) {
+                updateBinaryFirstValue(curPattern.getBinary(j), column[0].getLong(curIndex));
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;

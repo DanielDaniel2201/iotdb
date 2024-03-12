@@ -246,7 +246,7 @@ public class ExtremeAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           int curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
@@ -314,7 +314,7 @@ public class ExtremeAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           long curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
@@ -382,7 +382,7 @@ public class ExtremeAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           float curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
@@ -450,7 +450,7 @@ public class ExtremeAccumulator implements Accumulator {
           curPatternCount =
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
-                  : curPatternCount + curIndex - lastIndex;
+                  : lastIndex - curIndex + 1;
           double curValue = -1;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
