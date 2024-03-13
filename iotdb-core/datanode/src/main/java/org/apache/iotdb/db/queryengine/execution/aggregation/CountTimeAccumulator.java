@@ -40,34 +40,23 @@ public class CountTimeAccumulator implements Accumulator {
   // Column should be like: | Time | Time |
   @Override
   public void addInput(Column[] column, BitMap bitMap, int lastIndex) {
-    if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (bitMap == null
-              || bitMap.isAllMarked()
-              || bitMap.getRegion(curIndex, curPatternCount).isAllMarked()) {
-            countValue += curPatternCount;
-            curIndex += curPatternCount;
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap.isMarked(j)) {
-                countValue++;
-              }
-            }
-          }
-        }
-      }
-      return;
-    }
+    // if (column[1] instanceof RLEColumn) {
+    //   int curIndex = 0;
+    //   int positionCount = column[1].getPositionCount();
+    //   int curPatternCount = 0;
+    //   for (int i = 0; i < positionCount; i++) {
+    //     if (!((RLEColumn) column[1]).isNullRLE(i)) {
+    //       RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
+    //       curPatternCount = curPattern.getPositionCount();
+    //       curPatternCount =
+    //           curIndex + curPatternCount - 1 <= lastIndex
+    //               ? curPatternCount
+    //               : lastIndex - curIndex + 1;
+    //       for (int j = 0; j < curPatternCount; j++ cu)
+    //     }
+    //   }
+    //   return;
+    // }
     if ((bitMap == null) || bitMap.isAllMarked()) {
       countValue += (lastIndex + 1);
     } else {

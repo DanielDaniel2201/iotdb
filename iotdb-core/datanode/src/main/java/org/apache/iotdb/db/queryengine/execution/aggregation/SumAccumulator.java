@@ -163,15 +163,18 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()
-              && (bitMap == null
-                  || bitMap.isAllMarked()
-                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-            initResult = true;
-            sumValue += curPatternCount * curPattern.getInt(0);
-            curIndex += curPatternCount;
-          } else {
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              initResult = true;
+              validCount++;
+            }
+            sumValue += curPattern.getInt(0) * validCount;
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
                 continue;
               }
@@ -209,15 +212,18 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()
-              && (bitMap == null
-                  || bitMap.isAllMarked()
-                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-            initResult = true;
-            sumValue += curPatternCount * curPattern.getLong(0);
-            curIndex += curPatternCount;
-          } else {
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              initResult = true;
+              validCount++;
+            }
+            sumValue += curPattern.getLong(0) * validCount;
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
                 continue;
               }
@@ -255,15 +261,18 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()
-              && (bitMap == null
-                  || bitMap.isAllMarked()
-                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-            initResult = true;
-            sumValue += curPatternCount * curPattern.getFloat(0);
-            curIndex += curPatternCount;
-          } else {
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              initResult = true;
+              validCount++;
+            }
+            sumValue += curPattern.getFloat(0) * validCount;
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
                 continue;
               }
@@ -301,15 +310,18 @@ public class SumAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()
-              && (bitMap == null
-                  || bitMap.isAllMarked()
-                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-            initResult = true;
-            sumValue += curPatternCount * curPattern.getDouble(0);
-            curIndex += curPatternCount;
-          } else {
+          int validCount = 0;
+          if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              initResult = true;
+              validCount++;
+            }
+            sumValue += curPattern.getDouble(0) * validCount;
+          } else {
+            for (int j = 0; j < curPatternCount; j++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
                 continue;
               }

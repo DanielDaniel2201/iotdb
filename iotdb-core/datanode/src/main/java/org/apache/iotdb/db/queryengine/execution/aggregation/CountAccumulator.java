@@ -59,12 +59,13 @@ public class CountAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : lastIndex - curIndex + 1;
-          if (!curPattern.mayHaveNull()
-              && (bitMap == null
-                  || bitMap.isAllMarked()
-                  || bitMap.getRegion(curIndex, curPatternCount).isAllMarked())) {
-            countValue += curPatternCount;
-            curIndex += curPatternCount;
+          if (curPattern.isRLEMode()) {
+            for (int j = 0; j < curPatternCount; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              countValue++;
+            }
           } else {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitMap != null && !bitMap.isMarked(curIndex)) {
