@@ -426,19 +426,17 @@ public class VarianceAccumulator implements Accumulator {
               curIndex + curPatternCount - 1 <= lastIndex
                   ? curPatternCount
                   : lastIndex - curIndex + 1;
-          int validCount = 0;
           if (curPattern.isRLEMode()) {
             for (int j = 0; j < curPatternCount; j++, curIndex++) {
               if (bitmap != null && !bitmap.isMarked(curIndex)) {
                 continue;
               }
-              validCount++;
+              double value = curPattern.getDouble(0);
+              count++;
+              double delta = value - mean;
+              mean += delta / count;
+              m2 += delta * (value - mean);
             }
-            double value = curPattern.getDouble(0);
-            count += validCount;
-            double delta = value - mean;
-            mean += delta / count;
-            m2 += delta * (value - mean);
           } else {
             for (int j = 0; j < curPatternCount; j++) {
               if (bitmap != null && !bitmap.isMarked(curIndex)) {

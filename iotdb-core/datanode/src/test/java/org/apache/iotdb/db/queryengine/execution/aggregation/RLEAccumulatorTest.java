@@ -279,19 +279,19 @@ public class RLEAccumulatorTest {
     Assert.assertFalse(extremeAccumulator.hasFinalResult());
     intermediateResult[0] = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputIntermediate(intermediateResult);
-    Assert.assertEquals(99d, intermediateResult[0].build().getDouble(0), 0.001);
+    Assert.assertEquals(999d, intermediateResult[0].build().getDouble(0), 0.001);
 
     // add intermediate result as input
     extremeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(99d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(999d, finalResult.build().getDouble(0), 0.001);
 
     extremeAccumulator.reset();
     extremeAccumulator.addStatistics(statistics);
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(1000d, finalResult.build().getDouble(0), 0.001);
   }
 
   @Test
@@ -337,7 +337,7 @@ public class RLEAccumulatorTest {
     firstValueAccumulator.addStatistics(statistics);
     finalResult = new DoubleColumnBuilder(null, 1);
     firstValueAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(1000d, finalResult.build().getDouble(0), 0.001);
   }
 
   @Test
@@ -368,21 +368,21 @@ public class RLEAccumulatorTest {
     intermediateResult[0] = new DoubleColumnBuilder(null, 1);
     intermediateResult[1] = new LongColumnBuilder(null, 1);
     lastValueAccumulator.outputIntermediate(intermediateResult);
-    Assert.assertEquals(99d, intermediateResult[0].build().getDouble(0), 0.001);
-    Assert.assertEquals(99L, intermediateResult[1].build().getLong(0));
+    Assert.assertEquals(999d, intermediateResult[0].build().getDouble(0), 0.001);
+    Assert.assertEquals(999L, intermediateResult[1].build().getLong(0));
 
     // add intermediate result as input
     lastValueAccumulator.addIntermediate(
         new Column[] {intermediateResult[0].build(), intermediateResult[1].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     lastValueAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(99L, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(999L, finalResult.build().getDouble(0), 0.001);
 
     lastValueAccumulator.reset();
     lastValueAccumulator.addStatistics(statistics);
     finalResult = new DoubleColumnBuilder(null, 1);
     lastValueAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(1000d, finalResult.build().getDouble(0), 0.001);
   }
 
   @Test
@@ -410,19 +410,19 @@ public class RLEAccumulatorTest {
     Assert.assertFalse(maxTimeAccumulator.hasFinalResult());
     intermediateResult[0] = new LongColumnBuilder(null, 1);
     maxTimeAccumulator.outputIntermediate(intermediateResult);
-    Assert.assertEquals(99, intermediateResult[0].build().getLong(0));
+    Assert.assertEquals(999, intermediateResult[0].build().getLong(0));
 
     // add intermediate result as input
     maxTimeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new LongColumnBuilder(null, 1);
     maxTimeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(99, finalResult.build().getLong(0));
+    Assert.assertEquals(999, finalResult.build().getLong(0));
 
     maxTimeAccumulator.reset();
     maxTimeAccumulator.addStatistics(statistics);
     finalResult = new LongColumnBuilder(null, 1);
     maxTimeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100, finalResult.build().getLong(0));
+    Assert.assertEquals(1000, finalResult.build().getLong(0));
   }
 
   @Test
@@ -462,7 +462,7 @@ public class RLEAccumulatorTest {
     minTimeAccumulator.addStatistics(statistics);
     finalResult = new LongColumnBuilder(null, 1);
     minTimeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100, finalResult.build().getLong(0));
+    Assert.assertEquals(1000, finalResult.build().getLong(0));
   }
 
   @Test
@@ -490,19 +490,19 @@ public class RLEAccumulatorTest {
     Assert.assertFalse(extremeAccumulator.hasFinalResult());
     intermediateResult[0] = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputIntermediate(intermediateResult);
-    Assert.assertEquals(99d, intermediateResult[0].build().getDouble(0), 0.001);
+    Assert.assertEquals(999d, intermediateResult[0].build().getDouble(0), 0.001);
 
     // add intermediate result as input
     extremeAccumulator.addIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(99d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(999d, finalResult.build().getDouble(0), 0.001);
 
     extremeAccumulator.reset();
     extremeAccumulator.addStatistics(statistics);
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(1000d, finalResult.build().getDouble(0), 0.001);
   }
 
   @Test
@@ -542,7 +542,7 @@ public class RLEAccumulatorTest {
     extremeAccumulator.addStatistics(statistics);
     finalResult = new DoubleColumnBuilder(null, 1);
     extremeAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(100d, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(1000d, finalResult.build().getDouble(0), 0.001);
   }
 
   @Test
@@ -625,10 +625,10 @@ public class RLEAccumulatorTest {
     intermediateResult[0] = new BinaryColumnBuilder(null, 1);
     stddevAccumulator.outputIntermediate(intermediateResult);
     byte[] result = intermediateResult[0].build().getBinary(0).getValues();
-    Assert.assertEquals(100, BytesUtils.bytesToLong(result, Long.BYTES));
-    Assert.assertEquals(49.50, BytesUtils.bytesToDouble(result, Long.BYTES), 0.001);
+    Assert.assertEquals(1000, BytesUtils.bytesToLong(result, Long.BYTES));
+    Assert.assertEquals(496.52999, BytesUtils.bytesToDouble(result, Long.BYTES), 0.001);
     Assert.assertEquals(
-        83325, BytesUtils.bytesToDouble(result, (Long.BYTES + Double.BYTES)), 0.001);
+      8.333234910000008E7, BytesUtils.bytesToDouble(result, (Long.BYTES + Double.BYTES)), 0.001);
 
     stddevAccumulator.addIntermediate(
         new Column[] {
@@ -636,13 +636,13 @@ public class RLEAccumulatorTest {
         });
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(28.938, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(288.7456252795168, finalResult.build().getDouble(0), 0.001);
 
     // test remove partial result interface
     stddevAccumulator.removeIntermediate(new Column[] {intermediateResult[0].build()});
     finalResult = new DoubleColumnBuilder(null, 1);
     stddevAccumulator.outputFinal(finalResult);
-    Assert.assertEquals(29.011491975882016, finalResult.build().getDouble(0), 0.001);
+    Assert.assertEquals(288.81787490538903, finalResult.build().getDouble(0), 0.001);
   }
 
   @Test
@@ -672,7 +672,7 @@ public class RLEAccumulatorTest {
     intermediateResult[0] = new BinaryColumnBuilder(null, 1);
     stddevPopAccumulator.outputIntermediate(intermediateResult);
     byte[] result = intermediateResult[0].build().getBinary(0).getValues();
-    Assert.assertEquals(100, BytesUtils.bytesToLong(result, Long.BYTES));
+    Assert.assertEquals(1000, BytesUtils.bytesToLong(result, Long.BYTES));
     Assert.assertEquals(49.50, BytesUtils.bytesToDouble(result, Long.BYTES), 0.001);
     Assert.assertEquals(
         83325, BytesUtils.bytesToDouble(result, (Long.BYTES + Double.BYTES)), 0.001);
