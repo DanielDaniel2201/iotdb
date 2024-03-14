@@ -45,9 +45,6 @@ public class CountAccumulator implements Accumulator {
   @Override
   public void addInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = column[1].getPositionCount();
       int curPatternCount = 0;
@@ -79,9 +76,6 @@ public class CountAccumulator implements Accumulator {
       }
       return;
     }
-    // **************************************************
-    LOGGER.info("non-RLE-addInput branch is chosen");
-    // **************************************************
     int curPositionCount = column[0].getPositionCount();
     if (!column[1].mayHaveNull()
         && lastIndex == curPositionCount - 1

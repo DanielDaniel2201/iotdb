@@ -233,9 +233,6 @@ public class ExtremeAccumulator implements Accumulator {
 
   private void addIntInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = column[1].getPositionCount();
       int curPatternCount = 0;
@@ -273,9 +270,6 @@ public class ExtremeAccumulator implements Accumulator {
       }
       return;
     }
-    // **************************************************
-    LOGGER.info("non-RLE-addInput branch is chosen");
-    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -301,9 +295,6 @@ public class ExtremeAccumulator implements Accumulator {
 
   private void addLongInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = column[1].getPositionCount();
       int curPatternCount = 0;
@@ -341,9 +332,6 @@ public class ExtremeAccumulator implements Accumulator {
       }
       return;
     }
-    // **************************************************
-    LOGGER.info("non-RLE-addInput branch is chosen");
-    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -369,9 +357,6 @@ public class ExtremeAccumulator implements Accumulator {
 
   private void addFloatInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = column[1].getPositionCount();
       int curPatternCount = 0;
@@ -409,9 +394,6 @@ public class ExtremeAccumulator implements Accumulator {
       }
       return;
     }
-    // **************************************************
-    LOGGER.info("non-RLE-addInput branch is chosen");
-    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;
@@ -437,9 +419,6 @@ public class ExtremeAccumulator implements Accumulator {
 
   private void addDoubleInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = column[1].getPositionCount();
       int curPatternCount = 0;
@@ -477,9 +456,6 @@ public class ExtremeAccumulator implements Accumulator {
       }
       return;
     }
-    // **************************************************
-    LOGGER.info("non-RLE-addInput branch is chosen");
-    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;

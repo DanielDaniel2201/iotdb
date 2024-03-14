@@ -40,9 +40,6 @@ public class TimeDurationAccumulator implements Accumulator {
   @Override
   public void addInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = column[1].getPositionCount();
       int curPatternCount = 0;
@@ -84,9 +81,6 @@ public class TimeDurationAccumulator implements Accumulator {
       }
       return;
     }
-    // **************************************************
-    LOGGER.info("non-RLE-addInput branch is chosen");
-    // **************************************************
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {
         continue;

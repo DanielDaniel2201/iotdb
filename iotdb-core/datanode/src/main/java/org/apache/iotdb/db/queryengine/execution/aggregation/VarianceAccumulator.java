@@ -220,9 +220,6 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addIntInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = columns[1].getPositionCount();
       int curPatternCount = 0;
@@ -266,9 +263,6 @@ public class VarianceAccumulator implements Accumulator {
       return;
     }
     for (int i = 0; i <= lastIndex; i++) {
-      // **************************************************
-      LOGGER.info("non-RLE-addInput branch is chosen");
-      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
@@ -284,9 +278,6 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addLongInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = columns[1].getPositionCount();
       int curPatternCount = 0;
@@ -330,9 +321,6 @@ public class VarianceAccumulator implements Accumulator {
       return;
     }
     for (int i = 0; i <= lastIndex; i++) {
-      // **************************************************
-      LOGGER.info("non-RLE-addInput branch is chosen");
-      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
@@ -348,9 +336,6 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addFloatInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = columns[1].getPositionCount();
       int curPatternCount = 0;
@@ -394,9 +379,6 @@ public class VarianceAccumulator implements Accumulator {
       return;
     }
     for (int i = 0; i <= lastIndex; i++) {
-      // **************************************************
-      LOGGER.info("non-RLE-addInput branch is chosen");
-      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
@@ -412,9 +394,6 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addDoubleInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      // **********************************************
-      LOGGER.info("RLE-addInput branch is chosen");
-      // **********************************************
       int curIndex = 0;
       int positionCount = columns[1].getPositionCount();
       int curPatternCount = 0;
@@ -456,9 +435,6 @@ public class VarianceAccumulator implements Accumulator {
       return;
     }
     for (int i = 0; i <= lastIndex; i++) {
-      // **************************************************
-      LOGGER.info("non-RLE-addInput branch is chosen");
-      // **************************************************
       if (bitmap != null && !bitmap.isMarked(i)) {
         continue;
       }
