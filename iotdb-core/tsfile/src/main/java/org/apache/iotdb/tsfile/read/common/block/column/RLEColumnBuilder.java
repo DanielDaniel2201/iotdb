@@ -21,6 +21,8 @@ package org.apache.iotdb.tsfile.read.common.block.column;
 
 import org.apache.iotdb.tsfile.exception.write.UnSupportedDataTypeException;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.read.common.type.TypeEnum;
+import org.apache.iotdb.tsfile.utils.RLEPattern;
 
 import org.openjdk.jol.info.ClassLayout;
 import org.slf4j.Logger;
@@ -37,128 +39,125 @@ public class RLEColumnBuilder implements ColumnBuilder {
 
   private static final int INSTANCE_SIZE =
       ClassLayout.parseClass(IntColumnBuilder.class).instanceSize();
-  public static final RLEColumn NULL_VALUE_BLOCK =
-      new RLEColumn(0, 1, new boolean[] {true}, new RLEPatternColumn[1]);
 
   private final ColumnBuilderStatus columnBuilderStatus;
   private boolean initialized;
   private final int initialEntryCount;
 
   private int positionCount;
-  private boolean hasNullValue;
+  private int patternCount; // count of valid RlePatterns
+  private TSDataType dataType;
   private boolean hasNonNullValue;
 
-  // it is assumed that these arrays are the same length
-  private boolean[] valueIsNull = new boolean[0];
-  private RLEPatternColumn[] values = new RLEPatternColumn[0];
+  // it is assumed that patternOffsetIndex.length = values.length + 1
+  private RLEPattern[] values = new RLEPattern[0];
+  private int[] patternOffsetIndex =
+      new int[] {
+        0
+      }; // patternOffsetIndex[i] refers to the offset of values[i].getObject(0) in all data.
 
   private long retainedSizeInBytes;
 
-  public RLEColumnBuilder(ColumnBuilderStatus columnBuilderStatus, int expectedEntries) {
+  public RLEColumnBuilder(
+      ColumnBuilderStatus columnBuilderStatus, int expectedEntries, TSDataType type) {
     this.columnBuilderStatus = columnBuilderStatus;
     this.initialEntryCount = max(expectedEntries, 1);
+    this.dataType = type;
 
     updateDataSize();
   }
 
-  public ColumnBuilder writeRLEPattern(RLEPatternColumn value) {
-    if (values.length <= positionCount) {
-      growCapacity();
+  public RLEColumnBuilder(
+      ColumnBuilderStatus columnBuilderStatus, int expectedEntries, TypeEnum type) {
+    this.columnBuilderStatus = columnBuilderStatus;
+    this.initialEntryCount = max(expectedEntries, 1);
+    switch (type) {
+      case INT32:
+        this.dataType = TSDataType.INT32;
+        break;
+      case INT64:
+        this.dataType = TSDataType.INT64;
+        break;
+      case FLOAT:
+        this.dataType = TSDataType.FLOAT;
+        break;
+      case DOUBLE:
+        this.dataType = TSDataType.DOUBLE;
+        break;
+      case BOOLEAN:
+        this.dataType = TSDataType.BOOLEAN;
+        break;
+      case BINARY:
+        this.dataType = TSDataType.TEXT;
+        break;
+      default:
+        throw new UnSupportedDataTypeException("RLEColumn builder do not support " + type);
     }
-
-    values[positionCount] = value;
-
-    hasNonNullValue = true;
-    positionCount++;
-    if (columnBuilderStatus != null) {
-      columnBuilderStatus.addBytes(value.getInstanceSize());
-    }
-    return this;
+    updateDataSize();
   }
 
-  /** Write RLEPattern and only preserve the retained values */
-  public ColumnBuilder writeRLEPattern(RLEPatternColumn value, boolean[] valueRetained) {
-    if (values.length <= positionCount) {
-      growCapacity();
-    }
-
-    values[positionCount] = (RLEPatternColumn) value.subColumn(valueRetained);
-
-    hasNonNullValue = true;
-    positionCount++;
-    if (columnBuilderStatus != null) {
-      columnBuilderStatus.addBytes(value.getInstanceSize());
-    }
-    return this;
-  }
-
-  /** Write an Object to the current entry, which should be the RLEPattern type; */
   @Override
-  public ColumnBuilder writeObject(Object value) {
-    if (value instanceof RLEPatternColumn) {
-      writeRLEPattern((RLEPatternColumn) value);
-      return this;
+  public ColumnBuilder writeColumn(Column value, int logicPositionCount) {
+    if (!value.getDataType().equals(dataType)) {
+      throw new UnSupportedDataTypeException(
+          " only " + dataType + " supported, but get " + value.getDataType());
     }
-    throw new UnSupportedDataTypeException("RLEColumn only support RLEPattern data type");
+
+    if (values.length <= patternCount) {
+      growCapacity();
+    }
+    RLEPattern pattern = new RLEPattern(value, logicPositionCount);
+    values[patternCount] = pattern;
+    patternOffsetIndex[patternCount + 1] = patternOffsetIndex[patternCount] + logicPositionCount;
+    hasNonNullValue = true;
+    patternCount++;
+    positionCount += logicPositionCount;
+    if (columnBuilderStatus != null) {
+      columnBuilderStatus.addBytes((int) value.getRetainedSizeInBytes());
+    }
+    return this;
   }
 
   @Override
   public ColumnBuilder write(Column column, int index) {
-    // if here need to be modified to the raw index ?
-    // current RLEPattern index supported.
-    if (!(column instanceof RLEColumn)) {
-      throw new UnsupportedOperationException(
-          "for RLEColumnBuilder.write, only RLEColumn supported.");
-    } else {
-      return writeRLEPattern(((RLEColumn) column).getRLEPattern(index));
-    }
-  }
-
-  @Override
-  public ColumnBuilder writeRLEPattern(Column column, int index) {
-    if (!(column instanceof RLEColumn)) {
-      throw new UnsupportedOperationException(
-          "for RLEColumnBuilder.write, only RLEColumn supported.");
-    } else {
-      return writeRLEPattern(((RLEColumn) column).getRLEPattern(index));
-    }
+    return writeColumn(column.getColumn(index), ((RLEColumn) column).getLogicPositionCount(index));
   }
 
   @Override
   public ColumnBuilder appendNull() {
-    if (values.length <= positionCount) {
-      growCapacity();
-    }
-
-    valueIsNull[positionCount] = true;
-
-    hasNullValue = true;
-    positionCount++;
-    if (columnBuilderStatus != null) {
-      columnBuilderStatus.addBytes(IntColumn.SIZE_IN_BYTES_PER_POSITION);
-    }
-    return this;
+    throw new UnsupportedOperationException(getClass().getName());
   }
 
   @Override
   public Column build() {
     if (!hasNonNullValue) {
-      return new RunLengthEncodedColumn(NULL_VALUE_BLOCK, positionCount);
+      switch (getDataType()) {
+        case INT32:
+          return new RunLengthEncodedColumn(
+              new IntColumn(0, 1, new boolean[] {true}, new int[1]), positionCount);
+        case INT64:
+          return new RunLengthEncodedColumn(
+              new LongColumn(0, 1, new boolean[] {true}, new long[1]), positionCount);
+        case FLOAT:
+          return new RunLengthEncodedColumn(
+              new FloatColumn(0, 1, new boolean[] {true}, new float[1]), positionCount);
+        case DOUBLE:
+          return new RunLengthEncodedColumn(
+              new DoubleColumn(0, 1, new boolean[] {true}, new double[1]), positionCount);
+        case BOOLEAN:
+          return new RunLengthEncodedColumn(
+              new BooleanColumn(0, 1, new boolean[] {true}, new boolean[1]), positionCount);
+        default:
+          throw new UnSupportedDataTypeException(
+              "Unsupported DataType for RLEColumn:" + getDataType());
+      }
     }
-    return new RLEColumn(0, positionCount, hasNullValue ? valueIsNull : null, values);
+    return new RLEColumn(positionCount, patternCount, values, patternOffsetIndex);
   }
 
   @Override
   public TSDataType getDataType() {
-    // int length = values.length;
-    // while (length > 0) {
-    //   if (valueIsNull[length - 1] == false) {
-    //     return values[length - 1].getDataType();
-    //   }
-    //   length--;
-    // }
-    // return TSDataType.UNKNOWN;
-    return TSDataType.RLEPATTERN;
+    return dataType;
   }
 
   @Override
@@ -168,7 +167,8 @@ public class RLEColumnBuilder implements ColumnBuilder {
 
   @Override
   public ColumnBuilder newColumnBuilderLike(ColumnBuilderStatus columnBuilderStatus) {
-    return new RLEColumnBuilder(columnBuilderStatus, calculateBlockResetSize(positionCount));
+    return new RLEColumnBuilder(
+        columnBuilderStatus, calculateBlockResetSize(positionCount), dataType);
   }
 
   private void growCapacity() {
@@ -180,13 +180,13 @@ public class RLEColumnBuilder implements ColumnBuilder {
       initialized = true;
     }
 
-    valueIsNull = Arrays.copyOf(valueIsNull, newSize);
+    patternOffsetIndex = Arrays.copyOf(patternOffsetIndex, newSize + 1);
     values = Arrays.copyOf(values, newSize);
     updateDataSize();
   }
 
   private void updateDataSize() {
-    retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values);
+    retainedSizeInBytes = INSTANCE_SIZE + sizeOf(patternOffsetIndex) + sizeOf(values);
     if (columnBuilderStatus != null) {
       retainedSizeInBytes += ColumnBuilderStatus.INSTANCE_SIZE;
     }

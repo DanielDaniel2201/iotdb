@@ -25,7 +25,6 @@ import org.apache.iotdb.tsfile.file.metadata.statistics.Statistics;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
-import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.utils.BitMap;
 import org.apache.iotdb.tsfile.utils.BytesUtils;
@@ -220,45 +219,49 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addIntInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = columns[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
+      RLEColumn valueColumn = (RLEColumn) columns[1];
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = valueColumn.getColumn(i);
+        int curPatternLength = valueColumn.getLogicPositionCount(i);
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
           int validCount = 0;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+          if ((bitmap == null || bitmap.getRegion(curIndex, curPatternLength).isAllMarked())) {
+            validCount += curPatternLength;
+            curIndex += curPatternLength;
+          } else {
+            for (int j = 0; j < curPatternLength; j++, curIndex++) {
+              if (!bitmap.isMarked(curIndex)) {
                 continue;
               }
               validCount++;
             }
-            int value = curPattern.getInt(0);
-            count += validCount;
-            double delta = value - mean;
-            mean += delta / count;
-            m2 += delta * (value - mean);
-          } else {
-            for (int j = 0; j < curPatternCount; j++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                int value = curPattern.getInt(j);
-                count++;
-                double delta = value - mean;
-                mean += delta / count;
-                m2 += delta * (value - mean);
-              }
+          }
+          int value = curPattern.getInt(0);
+          double tmp = validCount * count;
+          count += validCount;
+          double delta = value - mean;
+          mean += validCount * (delta / count);
+          m2 += (delta * delta) * tmp / count;
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitmap != null && !bitmap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              int value = curPattern.getInt(j);
+              count++;
+              double delta = value - mean;
+              mean += delta / count;
+              m2 += delta * (value - mean);
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -278,45 +281,49 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addLongInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = columns[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
+      RLEColumn valueColumn = (RLEColumn) columns[1];
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = valueColumn.getColumn(i);
+        int curPatternLength = valueColumn.getLogicPositionCount(i);
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
           int validCount = 0;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+          if ((bitmap == null || bitmap.getRegion(curIndex, curPatternLength).isAllMarked())) {
+            validCount += curPatternLength;
+            curIndex += curPatternLength;
+          } else {
+            for (int j = 0; j < curPatternLength; j++, curIndex++) {
+              if (!bitmap.isMarked(curIndex)) {
                 continue;
               }
               validCount++;
             }
-            long value = curPattern.getLong(0);
-            count += validCount;
-            double delta = value - mean;
-            mean += delta / count;
-            m2 += delta * (value - mean);
-          } else {
-            for (int j = 0; j < curPatternCount; j++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                long value = curPattern.getLong(j);
-                count++;
-                double delta = value - mean;
-                mean += delta / count;
-                m2 += delta * (value - mean);
-              }
+          }
+          long value = curPattern.getLong(0);
+          double tmp = validCount * count;
+          count += validCount;
+          double delta = value - mean;
+          mean += validCount * (delta / count);
+          m2 += (delta * delta) * tmp / count;
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitmap != null && !bitmap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              long value = curPattern.getLong(j);
+              count++;
+              double delta = value - mean;
+              mean += delta / count;
+              m2 += delta * (value - mean);
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -336,45 +343,50 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addFloatInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = columns[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
+      RLEColumn valueColumn = (RLEColumn) columns[1];
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = valueColumn.getColumn(i);
+        int curPatternLength = valueColumn.getLogicPositionCount(i);
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
           int validCount = 0;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+          if ((bitmap == null || bitmap.getRegion(curIndex, curPatternLength).isAllMarked())) {
+            validCount += curPatternLength;
+            curIndex += curPatternLength;
+          } else {
+            for (int j = 0; j < curPatternLength; j++, curIndex++) {
+              if (!bitmap.isMarked(curIndex)) {
                 continue;
               }
               validCount++;
             }
-            float value = curPattern.getFloat(0);
-            count += validCount;
-            double delta = value - mean;
-            mean += delta / count;
-            m2 += delta * (value - mean);
-          } else {
-            for (int j = 0; j < curPatternCount; j++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                float value = curPattern.getFloat(j);
-                count++;
-                double delta = value - mean;
-                mean += delta / count;
-                m2 += delta * (value - mean);
-              }
+          }
+          float value = curPattern.getFloat(0);
+          double tmp = validCount * count;
+          count += validCount;
+          double delta = value - mean;
+          mean += validCount * (delta / count);
+          m2 += (delta * delta) * tmp / count;
+
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitmap != null && !bitmap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              float value = curPattern.getFloat(j);
+              count++;
+              double delta = value - mean;
+              mean += delta / count;
+              m2 += delta * (value - mean);
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -394,43 +406,49 @@ public class VarianceAccumulator implements Accumulator {
 
   private void addDoubleInput(Column[] columns, BitMap bitmap, int lastIndex) {
     if (columns[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = columns[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) columns[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) columns[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
+      RLEColumn valueColumn = (RLEColumn) columns[1];
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = valueColumn.getColumn(i);
+        int curPatternLength = valueColumn.getLogicPositionCount(i);
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          int validCount = 0;
+          if ((bitmap == null || bitmap.getRegion(curIndex, curPatternLength).isAllMarked())) {
+            validCount += curPatternLength;
+            curIndex += curPatternLength;
+          } else {
+            for (int j = 0; j < curPatternLength; j++, curIndex++) {
+              if (!bitmap.isMarked(curIndex)) {
                 continue;
               }
-              double value = curPattern.getDouble(0);
+              validCount++;
+            }
+          }
+          double value = curPattern.getDouble(0);
+          double tmp = validCount * count;
+          count += validCount;
+          double delta = value - mean;
+          mean += validCount * (delta / count);
+          m2 += (delta * delta) * tmp / count;
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitmap != null && !bitmap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              double value = curPattern.getDouble(j);
               count++;
               double delta = value - mean;
               mean += delta / count;
               m2 += delta * (value - mean);
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++) {
-              if (bitmap != null && !bitmap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                double value = curPattern.getDouble(j);
-                count++;
-                double delta = value - mean;
-                mean += delta / count;
-                m2 += delta * (value - mean);
-              }
-            }
           }
         }
+        i++;
       }
       return;
     }
