@@ -19,9 +19,9 @@
 
 package org.apache.iotdb.tsfile.read.common.block.column;
 
-import org.apache.iotdb.tsfile.exception.write.UnSupportedDataTypeException;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.utils.Binary;
+import org.apache.iotdb.tsfile.utils.Pair;
 import org.apache.iotdb.tsfile.utils.TsPrimitiveType;
 
 import org.openjdk.jol.info.ClassLayout;
@@ -29,237 +29,293 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Optional;
 
+import static io.airlift.slice.SizeOf.sizeOfIntArray;
 import static java.util.Objects.requireNonNull;
 import static org.apache.iotdb.tsfile.read.common.block.column.ColumnUtil.checkValidRegion;
 
-// a column store values in RLEPattern.
-// attention: all the functions overwrited, use index indexing the raw data.
-// all the functions named "*RLE*", use index indexing the RLEPatterns.
 public class RLEColumn implements Column {
   private static final Logger LOGGER = LoggerFactory.getLogger(RLEColumn.class);
 
-  private static final int INSTANCE_SIZE =
-      ClassLayout.parseClass(RunLengthEncodedColumn.class).instanceSize();
+  private static final int INSTANCE_SIZE = ClassLayout.parseClass(RLEColumn.class).instanceSize();
 
-  private final int arrayOffset;
+  private int arrayOffset;
   private final int positionCount;
-  private final boolean[] valueIsNull;
-  private final RLEPatternColumn[] values;
+  private final Column[] values;
+  // patternOffsetIndex[i] refers to the offset of values[i].getObject(0) in all data
+  private final int[] patternOffsetIndex;
+  // Marking the latest read column index, which can effectively save traversal time when data is
+  // continuously read.
+  private int curIndex;
 
-  public RLEColumn(int positionCount, Optional<boolean[]> valueIsNull, Column[] values) {
-    this(0, positionCount, valueIsNull.orElse(null), values);
+  public RLEColumn(int positionCount, Column[] values, int[] patternOffsetIndex) {
+    this(0, positionCount, values, patternOffsetIndex, 0);
   }
 
-  RLEColumn(int arrayOffset, int positionCount, boolean[] valueIsNull, Column[] values) {
+  public RLEColumn(int arrayOffset, int positionCount, Column[] values, int[] patternOffsetIndex) {
+    this(arrayOffset, positionCount, values, patternOffsetIndex, 0);
+  }
+
+  RLEColumn(
+      int arrayOffset, int positionCount, Column[] values, int[] patternOffsetIndex, int curIndex) {
     requireNonNull(values, "values is null");
+    requireNonNull(patternOffsetIndex, "patternOffsetIndex is null");
+
     if (arrayOffset < 0) {
       throw new IllegalArgumentException("arrayOffset is negative");
     }
     this.arrayOffset = arrayOffset;
+
     if (positionCount < 0) {
       throw new IllegalArgumentException("positionCount is negative");
     }
     this.positionCount = positionCount;
 
-    if (values.length - arrayOffset < positionCount) {
-      throw new IllegalArgumentException("values length is less than positionCount");
-    }
-
-    this.values = (RLEPatternColumn[]) values;
-
-    if (valueIsNull != null && valueIsNull.length - arrayOffset < positionCount) {
-      throw new IllegalArgumentException("isNull length is less than positionCount");
-    }
-    this.valueIsNull = valueIsNull;
-  }
-
-  /** TODO */
-  /** reclaim RLEColumn to corresponding raw dataType Column */
-  public Object reclaim() {
-    TSDataType valueDataType = getValueDataType();
-    int totalValueCount = getValueCount();
-    int index = 0;
-    switch (valueDataType) {
-      case INT32:
-        int[] intValues = new int[totalValueCount];
-        if (valueIsNull == null) {
-          for (int i = 0; i < positionCount; i++) {
-            int curCount = values[arrayOffset + i].getPositionCount();
-            int[] curValue = values[arrayOffset + i].getInts();
-            System.arraycopy(curValue, 0, intValues, index, curCount);
-            index += curCount;
-          }
-        } else {
-          for (int i = 0; i < positionCount; i++) {
-            if (valueIsNull[arrayOffset + i] != true) {
-              int curCount = values[arrayOffset + i].getPositionCount();
-              int[] curValue = values[arrayOffset + i].getInts();
-              System.arraycopy(curValue, 0, intValues, index, curCount);
-              index += curCount;
-            }
-          }
-        }
-        return (Object) (new IntColumn(totalValueCount, Optional.empty(), intValues));
-      case BOOLEAN:
-        boolean[] booleanValues = new boolean[totalValueCount];
-        if (valueIsNull == null) {
-          for (int i = 0; i < positionCount; i++) {
-            int curCount = values[arrayOffset + i].getPositionCount();
-            boolean[] curValue = values[arrayOffset + i].getBooleans();
-            System.arraycopy(curValue, 0, booleanValues, index, curCount);
-            index += curCount;
-          }
-        } else {
-          for (int i = 0; i < positionCount; i++) {
-            if (valueIsNull[arrayOffset + i] != true) {
-              int curCount = values[arrayOffset + i].getPositionCount();
-              boolean[] curValue = values[arrayOffset + i].getBooleans();
-              System.arraycopy(curValue, 0, booleanValues, index, curCount);
-              index += curCount;
-            }
-          }
-        }
-        return (Object) (new BooleanColumn(totalValueCount, Optional.empty(), booleanValues));
-      case DOUBLE:
-        double[] doubleValues = new double[totalValueCount];
-        if (valueIsNull == null) {
-          for (int i = 0; i < positionCount; i++) {
-            int curCount = values[arrayOffset + i].getPositionCount();
-            double[] curValue = values[arrayOffset + i].getDoubles();
-            System.arraycopy(curValue, 0, doubleValues, index, curCount);
-            index += curCount;
-          }
-        } else {
-          for (int i = 0; i < positionCount; i++) {
-            if (valueIsNull[arrayOffset + i] != true) {
-              int curCount = values[arrayOffset + i].getPositionCount();
-              double[] curValue = values[arrayOffset + i].getDoubles();
-              System.arraycopy(curValue, 0, doubleValues, index, curCount);
-              index += curCount;
-            }
-          }
-        }
-        return (Object) (new DoubleColumn(totalValueCount, Optional.empty(), doubleValues));
-      case FLOAT:
-        float[] floatValues = new float[totalValueCount];
-        if (valueIsNull == null) {
-          for (int i = 0; i < positionCount; i++) {
-            int curCount = values[arrayOffset + i].getPositionCount();
-            float[] curValue = values[arrayOffset + i].getFloats();
-            System.arraycopy(curValue, 0, floatValues, index, curCount);
-            index += curCount;
-          }
-        } else {
-          for (int i = 0; i < positionCount; i++) {
-            if (valueIsNull[arrayOffset + i] != true) {
-              int curCount = values[arrayOffset + i].getPositionCount();
-              float[] curValue = values[arrayOffset + i].getFloats();
-              System.arraycopy(curValue, 0, floatValues, index, curCount);
-              index += curCount;
-            }
-          }
-        }
-        return (Object) (new FloatColumn(totalValueCount, Optional.empty(), floatValues));
-      case INT64:
-        long[] longValues = new long[totalValueCount];
-        if (valueIsNull == null) {
-          for (int i = 0; i < positionCount; i++) {
-            int curCount = values[arrayOffset + i].getPositionCount();
-            long[] curValue = values[arrayOffset + i].getLongs();
-            System.arraycopy(curValue, 0, longValues, index, curCount);
-            index += curCount;
-          }
-        } else {
-          for (int i = 0; i < positionCount; i++) {
-            if (valueIsNull[arrayOffset + i] != true) {
-              int curCount = values[arrayOffset + i].getPositionCount();
-              long[] curValue = values[arrayOffset + i].getLongs();
-              System.arraycopy(curValue, 0, longValues, index, curCount);
-              index += curCount;
-            }
-          }
-        }
-        return (Object) (new LongColumn(totalValueCount, Optional.empty(), longValues));
-      case TEXT:
-        Binary[] textValues = new Binary[totalValueCount];
-        if (valueIsNull == null) {
-          for (int i = 0; i < positionCount; i++) {
-            int curCount = values[arrayOffset + i].getPositionCount();
-            Binary[] curValue = values[arrayOffset + i].getBinaries();
-            System.arraycopy(curValue, 0, textValues, index, curCount);
-            index += curCount;
-          }
-        } else {
-          for (int i = 0; i < positionCount; i++) {
-            if (valueIsNull[arrayOffset + i] != true) {
-              int curCount = values[arrayOffset + i].getPositionCount();
-              Binary[] curValue = values[arrayOffset + i].getBinaries();
-              System.arraycopy(curValue, 0, textValues, index, curCount);
-              index += curCount;
-            }
-          }
-        }
-        return (Object) (new BinaryColumn(totalValueCount, Optional.empty(), textValues));
-      default:
-        throw new UnSupportedDataTypeException(
-            "RLEColumn can't be reclaimed to " + valueDataType + " column.");
-    }
-  }
-
-  public RLEPatternColumn getRLEPattern(int position) {
-    if (position >= positionCount) {
+    if (patternOffsetIndex.length != values.length + 1) {
       throw new IllegalArgumentException(
-          " position: " + position + " out of the bound of positionCount: " + positionCount);
+          "patternOffsetIndex length and values length do not match");
     }
-    return values[arrayOffset + position];
+    this.values = values;
+    this.patternOffsetIndex = patternOffsetIndex;
+    this.curIndex = curIndex;
   }
 
-  public RLEPatternColumn[] getValues() {
-    return values;
-  }
-
-  public Object getValue(int position) {
-    // position correspoding to the index in raw data
-    int index = 0;
-    int accumulator = 0;
-    for (index = 0; index < this.positionCount; index++) {
-      if (accumulator + values[arrayOffset + index].getPositionCount() > position) {
-        break;
+  private int getCurIndex(int position) {
+    if (position > arrayOffset + positionCount) {
+      throw new IllegalArgumentException(
+          " position: "
+              + position
+              + " out of the bound of valid positions: "
+              + (arrayOffset + positionCount - 1));
+    } else if (position == arrayOffset + positionCount) {
+      int index;
+      for (index = curIndex;
+          index < patternOffsetIndex.length && patternOffsetIndex[index] == 0;
+          index++) ;
+      curIndex = index - 1;
+      return curIndex;
+    }
+    int index;
+    if (position >= patternOffsetIndex[curIndex]) {
+      /** check if curIndex hit */
+      if (position < patternOffsetIndex[curIndex + 1]) {
+        /** hit */
+        return curIndex;
+      } else {
+        /** miss, traverse from curIndex + 1 and update curIndex */
+        for (index = curIndex + 1;
+            index < values.length && position >= patternOffsetIndex[index];
+            index++) ;
+        curIndex = index - 1;
+        return curIndex;
       }
-      accumulator += values[arrayOffset + index].getPositionCount();
     }
-    if (index >= positionCount) {
-      throw new IllegalArgumentException(
-          " position: " + position + " out of the bound of positionCount: " + positionCount);
-    }
-    return values[arrayOffset + index].getObject(position - accumulator);
-  }
 
-  @Override
-  public Object getObject(int position) {
-    return getValue(position);
+    /** miss, traverse from scratch and reset curIndex */
+    for (index = 0;
+        index < patternOffsetIndex.length && position >= patternOffsetIndex[index];
+        index++) ;
+    curIndex = index - 1;
+    return curIndex;
   }
 
   @Override
   public TSDataType getDataType() {
-    return TSDataType.RLEPATTERN;
+    return (values[0]).getDataType();
   }
 
-  /** get dataType of the actual stored values. */
-  public TSDataType getValueDataType() {
-    if (valueIsNull == null) {
-      return values[arrayOffset].getDataType();
-    } else {
-      int i;
-      for (i = arrayOffset; i < arrayOffset + positionCount && valueIsNull[i] == true; i++) ;
-      if (i < arrayOffset + positionCount) {
-        return values[i].getDataType();
+  @Override
+  public boolean getBoolean(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getBoolean(0)
+        : values[curIndex].getBoolean(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  @Override
+  public int getInt(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getInt(0)
+        : values[curIndex].getInt(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  @Override
+  public long getLong(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getLong(0)
+        : values[curIndex].getLong(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  @Override
+  public float getFloat(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getFloat(0)
+        : values[curIndex].getFloat(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  @Override
+  public double getDouble(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getDouble(0)
+        : values[curIndex].getDouble(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  @Override
+  public Binary getBinary(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getBinary(0)
+        : values[curIndex].getBinary(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  public Pair<Column[], int[]> getVisibleColumns() {
+    int startIndex = getCurIndex(arrayOffset);
+    int endIndex = getCurIndex(arrayOffset + positionCount - 1);
+    Column[] visibleColumns = Arrays.copyOfRange(values, startIndex, endIndex + 1);
+    int[] logicPositionCount = new int[endIndex - startIndex + 1];
+    if (visibleColumns[endIndex - startIndex].getPositionCount() > 1) {
+      visibleColumns[endIndex - startIndex] =
+          visibleColumns[endIndex - startIndex].getRegion(
+              0, arrayOffset + positionCount - patternOffsetIndex[endIndex]);
+    }
+    if (visibleColumns[0].getPositionCount() > 1) {
+      visibleColumns[0] = visibleColumns[0].subColumn(arrayOffset - patternOffsetIndex[startIndex]);
+    }
+    for (int i = 0, idx = startIndex; idx <= endIndex; i++, idx++) {
+      logicPositionCount[i] = patternOffsetIndex[idx + 1] - patternOffsetIndex[idx];
+    }
+    return new Pair<Column[], int[]>(visibleColumns, logicPositionCount);
+  }
+
+  @Override
+  public Object getObject(int position) {
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getObject(0)
+        : values[curIndex].getObject(arrayOffset + position - patternOffsetIndex[curIndex]);
+  }
+
+  @Override
+  public boolean[] getBooleans() {
+    boolean[] res = new boolean[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getBoolean(0));
       } else {
-        return TSDataType.UNKNOWN;
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getBoolean(j);
+        }
       }
     }
+    return res;
+  }
+
+  @Override
+  public int[] getInts() {
+    int[] res = new int[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getInt(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getInt(j);
+        }
+      }
+    }
+    return res;
+  }
+
+  @Override
+  public long[] getLongs() {
+    long[] res = new long[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getLong(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getLong(j);
+        }
+      }
+    }
+    return res;
+  }
+
+  @Override
+  public float[] getFloats() {
+    float[] res = new float[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getFloat(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getFloat(j);
+        }
+      }
+    }
+    return res;
+  }
+
+  @Override
+  public double[] getDoubles() {
+    double[] res = new double[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getDouble(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getDouble(j);
+        }
+      }
+    }
+    return res;
+  }
+
+  @Override
+  public Binary[] getBinaries() {
+    Binary[] res = new Binary[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getBinary(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getBinary(j);
+        }
+      }
+    }
+    return res;
+  }
+
+  @Override
+  public Object[] getObjects() {
+    Object[] res = new Object[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].getObject(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].getObject(j);
+        }
+      }
+    }
+    return res;
   }
 
   @Override
@@ -268,243 +324,187 @@ public class RLEColumn implements Column {
   }
 
   @Override
-  public Object[] getObjects() {
-    return values;
-  }
-
-  @Override
   public TsPrimitiveType getTsPrimitiveType(int position) {
-    // position correspoding to the index in raw data
-    int index = 0;
-    int accumulator = 0;
-    for (index = 0; index < this.positionCount; index++) {
-      if (accumulator + values[arrayOffset + index].getPositionCount() > position) {
-        break;
-      }
-      accumulator += values[arrayOffset + index].getPositionCount();
-    }
-
-    return values[arrayOffset + index].getTsPrimitiveType(position - accumulator);
-  }
-
-  public TsPrimitiveType getTsPrimitiveTypeRLE(int position) {
-    RLEPatternColumn curRLEPatternColumn = getRLEPattern(position);
-    int Mode = curRLEPatternColumn.isRLEMode() ? 0 : 1;
-    int RLEPatternCount = curRLEPatternColumn.getPositionCount();
-    TsPrimitiveType[] values;
-    if (Mode == 1) {
-      values = new TsPrimitiveType[RLEPatternCount];
-      for (int i = 0; i < RLEPatternCount; i++) {
-        values[arrayOffset + i] = curRLEPatternColumn.getTsPrimitiveType(i);
-      }
-    } else {
-      values = new TsPrimitiveType[] {curRLEPatternColumn.getTsPrimitiveType(0)};
-    }
-    return new TsPrimitiveType.TsRLEPattern(values, Mode, RLEPatternCount);
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].getTsPrimitiveType(0)
+        : values[curIndex].getTsPrimitiveType(
+            arrayOffset + position - patternOffsetIndex[curIndex]);
   }
 
   @Override
   public boolean mayHaveNull() {
-    return valueIsNull != null;
+    int startIndex = getCurIndex(arrayOffset);
+    int endIndex = getCurIndex(arrayOffset + positionCount - 1);
+    for (int i = startIndex; i <= endIndex; i++) {
+      if (values[i].mayHaveNull()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
   public boolean isNull(int position) {
-    // position correspoding to the index in raw data
-    int index = 0;
-    int accumulator = 0;
-    for (index = 0; index < this.positionCount; index++) {
-      if (accumulator + values[arrayOffset + index].getPositionCount() > position) {
-        break;
-      }
-      accumulator += values[arrayOffset + index].getPositionCount();
-    }
-    return (valueIsNull != null && valueIsNull[index + arrayOffset])
-        || (values[index + arrayOffset].isNull(position - accumulator));
-  }
-
-  @Override
-  public boolean isNullRLE(int position) {
-    return valueIsNull != null && valueIsNull[position + arrayOffset];
+    int curIndex = getCurIndex(arrayOffset + position);
+    return values[curIndex].getPositionCount() == 1
+        ? values[curIndex].isNull(0)
+        : values[curIndex].isNull(arrayOffset + position - patternOffsetIndex[curIndex]);
   }
 
   @Override
   public boolean[] isNull() {
-    if (valueIsNull == null) {
-      boolean[] res = new boolean[positionCount];
-      Arrays.fill(res, false);
-      return res;
+    boolean[] res = new boolean[patternOffsetIndex[values.length]];
+    for (int i = 0; i < values.length; i++) {
+      int curPatternActualPositionCount = values[i].getPositionCount();
+      if (curPatternActualPositionCount == 1) {
+        Arrays.fill(res, patternOffsetIndex[i], patternOffsetIndex[i + 1], values[i].isNull(0));
+      } else {
+        int startIndex = patternOffsetIndex[i];
+        for (int j = 0; j < curPatternActualPositionCount; j++) {
+          res[startIndex + j] = values[i].isNull(j);
+        }
+      }
     }
-    return valueIsNull;
+    return res;
   }
 
-  /** get positionCount, which is the number of the RLEPatternColumn */
   @Override
   public int getPositionCount() {
     return positionCount;
   }
 
-  /** get the number of the actual values, which eauqls to sum(RLEPatternCoumns[i].PositionCount) */
-  public int getValueCount() {
-    int valueCount = 0;
-    if (valueIsNull == null) {
-      for (int i = 0; i < positionCount; i++) {
-        valueCount += values[arrayOffset + i].getPositionCount();
-      }
-    } else {
-      for (int i = 0; i < positionCount; i++) {
-        if (valueIsNull[arrayOffset + i] != true) {
-          valueCount += values[arrayOffset + i].getPositionCount();
-        }
-      }
-    }
-    return valueCount;
-  }
-
   @Override
   public long getRetainedSizeInBytes() {
-    long retainedSizeInBytes = 0;
-    if (valueIsNull != null) {
-      for (int i = 0; i < positionCount; i++) {
-        if (!valueIsNull[arrayOffset + i]) {
-          retainedSizeInBytes += values[arrayOffset + i].getRetainedSizeInBytes();
-        }
-      }
-    } else {
-      for (int i = 0; i < positionCount; i++) {
-        retainedSizeInBytes += values[arrayOffset + i].getRetainedSizeInBytes();
-      }
+    long valuesRetainedSizeInBytes = 0;
+    int startIndex = getCurIndex(arrayOffset);
+    int endIndex = getCurIndex(arrayOffset + positionCount - 1);
+    for (int i = startIndex; i <= endIndex; i++) {
+      valuesRetainedSizeInBytes += values[i].getRetainedSizeInBytes();
     }
-    retainedSizeInBytes += INSTANCE_SIZE;
-    return retainedSizeInBytes;
+    return INSTANCE_SIZE + sizeOfIntArray(endIndex - startIndex + 2) + valuesRetainedSizeInBytes;
   }
 
   @Override
   public Column getRegion(int positionOffset, int length) {
-    checkValidRegion(getValueCount(), positionOffset, length);
-    // position correspoding to the index in raw data
-    int index = 0;
-    int offsetAccumulator = 0;
-    for (index = 0; index < this.positionCount; index++) {
-      if (offsetAccumulator + values[arrayOffset + index].getPositionCount() > positionOffset) {
-        break;
-      }
-      offsetAccumulator += values[arrayOffset + index].getPositionCount();
-    }
-    int lengthAccumulator = offsetAccumulator;
-    int lengthIndex;
-    int lengthEnd = positionOffset + length;
-    for (lengthIndex = index; lengthIndex < this.positionCount; lengthIndex++) {
-      if (lengthAccumulator + values[arrayOffset + lengthIndex].getPositionCount() >= lengthEnd) {
-        break;
-      }
-      lengthAccumulator += values[arrayOffset + lengthIndex].getPositionCount();
-    }
-    if (index >= positionCount || lengthIndex >= positionCount) {
-      throw new IllegalArgumentException("index or length is not valid");
-    }
-    /*reconstruct the values  */
-    RLEPatternColumn[] tmpValues = new RLEPatternColumn[positionCount];
-    tmpValues = Arrays.copyOf(values, positionCount);
-    tmpValues[arrayOffset + index] =
-        (RLEPatternColumn)
-            tmpValues[arrayOffset + index].subColumn(positionOffset - offsetAccumulator);
-    tmpValues[arrayOffset + lengthIndex] =
-        (RLEPatternColumn)
-            tmpValues[arrayOffset + lengthIndex].subColumnHead(lengthEnd - lengthAccumulator);
-
-    return new RLEColumn(arrayOffset + index, lengthIndex - index + 1, valueIsNull, tmpValues);
-  }
-
-  public Column getRegionRLE(int positionOffset, int length) {
     checkValidRegion(positionCount, positionOffset, length);
-    return new RLEColumn(arrayOffset + positionOffset, length, valueIsNull, values);
+    return new RLEColumn(
+        arrayOffset + positionOffset,
+        length,
+        values,
+        patternOffsetIndex,
+        getCurIndex(arrayOffset + positionOffset));
+
+    // int endPositionOffset = positionOffset + length - 1;
+    // int startIndex = getCurIndex(positionOffset);
+    // int endIndex = getCurIndex(endPositionOffset);
+
+    // /*reconstruct the values  */
+    // RLEPattern[] valuesTmp = new RLEPattern[values.length];
+    // for (int i = 0; i < patternCount; i++) {
+    //   valuesTmp[arrayOffset + i] = values[arrayOffset + i].deepCopy();
+    // }
+    // int subFromOffset = positionOffset - patternOffsetIndex[startIndex];
+    // int subToOffset = endPositionOffset - patternOffsetIndex[endIndex];
+    // int[] patternOffsetIndexTmp = Arrays.copyOf(patternOffsetIndex, patternOffsetIndex.length);
+
+    // if (startIndex == endIndex) {
+    //   valuesTmp[arrayOffset + endIndex].getRegion(subFromOffset, length);
+
+    //   patternOffsetIndexTmp[arrayOffset + endIndex] = 0;
+    //   patternOffsetIndexTmp[arrayOffset + endIndex + 1] = length;
+    // } else {
+    //   valuesTmp[arrayOffset + startIndex].subColumn(subFromOffset);
+    //   valuesTmp[arrayOffset + endIndex].getRegion(0, subToOffset + 1);
+
+    //   patternOffsetIndexTmp[arrayOffset + startIndex] = 0;
+    //   for (int i = arrayOffset + startIndex + 1; i <= arrayOffset + endIndex; i++) {
+    //     patternOffsetIndexTmp[i] = patternOffsetIndexTmp[i] - positionOffset;
+    //   }
+    //   patternOffsetIndexTmp[arrayOffset + endIndex + 1] = length;
+    // }
+    // return new RLEColumn(
+    //     arrayOffset + startIndex,
+    //     length,
+    //     endIndex - startIndex + 1,
+    //     valuesTmp,
+    //     patternOffsetIndexTmp);
   }
 
   @Override
   public Column subColumn(int fromIndex) {
-    // position correspoding to the index in raw data
-    int index = 0;
-    int accumulator = 0;
-    for (index = 0; index < this.positionCount; index++) {
-      if (accumulator + values[arrayOffset + index].getPositionCount() > fromIndex) {
-        break;
-      }
-      accumulator += values[arrayOffset + index].getPositionCount();
-    }
-    if (index > positionCount) {
-      throw new IllegalArgumentException("fromIndex is not valid");
-    }
-    if (accumulator == fromIndex) {
-      return new RLEColumn(arrayOffset + index, positionCount - index, valueIsNull, values);
-    } else {
-      /*reconstruct the values  */
-      RLEPatternColumn[] tmpValues = new RLEPatternColumn[positionCount];
-      tmpValues = Arrays.copyOf(values, positionCount);
-      tmpValues[arrayOffset + index] =
-          (RLEPatternColumn) tmpValues[arrayOffset + index].subColumn(fromIndex - accumulator);
-      return new RLEColumn(arrayOffset + index, positionCount - index, valueIsNull, tmpValues);
-    }
-  }
-
-  public Column subColumnRLE(int fromIndex) {
     if (fromIndex > positionCount) {
       throw new IllegalArgumentException("fromIndex is not valid");
     }
-    return new RLEColumn(arrayOffset + fromIndex, positionCount - fromIndex, valueIsNull, values);
-  }
+    return new RLEColumn(
+        arrayOffset + fromIndex,
+        positionCount - fromIndex,
+        values,
+        patternOffsetIndex,
+        getCurIndex(arrayOffset + fromIndex));
 
-  @Override
-  public Column subColumn(boolean[] valueRetained) {
-    if (valueRetained.length != positionCount) {
-      throw new IllegalArgumentException("valueRetained is not valid");
-    }
-    int newCount = 0;
-    for (int i = 0; i < positionCount; i++) {
-      if (valueRetained[i] == true) {
-        newCount++;
-      }
-    }
-    if (newCount == positionCount) {
-      return new RLEColumn(0, newCount, valueIsNull, values);
-    }
-    RLEPatternColumn[] newValue = new RLEPatternColumn[newCount];
-    boolean[] newValueIsNull = new boolean[newCount];
-    if (valueIsNull == null) {
-      newValueIsNull = null;
-      for (int i = 0, j = 0; i < positionCount; i++) {
-        if (valueRetained[i] == true) {
-          newValue[j] = values[arrayOffset + i];
-          j++;
-        }
-      }
-    } else {
-      for (int i = 0, j = 0; i < positionCount; i++) {
-        if (valueRetained[i] == true) {
-          newValue[j] = values[arrayOffset + i];
-          newValueIsNull[j] = valueIsNull[arrayOffset + i];
-          j++;
-        }
-      }
-    }
-    return new RLEColumn(0, newCount, newValueIsNull, newValue);
+    // int curIndex = getCurIndex(fromIndex);
+    // int curOffset = patternOffsetIndex[curIndex];
+    // int[] patternOffsetIndexTmp = Arrays.copyOf(patternOffsetIndex, patternOffsetIndex.length);
+
+    // if (curOffset == fromIndex) {
+    //   for (int i = arrayOffset + curIndex; i <= arrayOffset + patternCount; i++) {
+    //     patternOffsetIndexTmp[i] = patternOffsetIndexTmp[i] - curOffset;
+    //   }
+    //   return new RLEColumn(
+    //       arrayOffset + curIndex,
+    //       positionCount - fromIndex,
+    //       patternCount - curIndex,
+    //       values,
+    //       patternOffsetIndexTmp);
+    // } else {
+    //   /*reconstruct the values  */
+    //   int subFromIndex = fromIndex - curOffset;
+    //   RLEPattern[] valuesTmp = new RLEPattern[values.length];
+    //   for (int i = 0; i < patternCount; i++) {
+    //     valuesTmp[arrayOffset + i] = values[arrayOffset + i].deepCopy();
+    //   }
+    //   valuesTmp[arrayOffset + curIndex].subColumn(subFromIndex);
+
+    //   patternOffsetIndexTmp[arrayOffset + curIndex] = 0;
+    //   for (int i = arrayOffset + curIndex + 1; i <= arrayOffset + patternCount; i++) {
+    //     patternOffsetIndexTmp[i] = patternOffsetIndexTmp[i] - fromIndex;
+    //   }
+
+    //   return new RLEColumn(
+    //       arrayOffset + curIndex,
+    //       positionCount - fromIndex,
+    //       patternCount - curIndex,
+    //       valuesTmp,
+    //       patternOffsetIndexTmp);
+    // }
   }
 
   @Override
   public void reverse() {
-    for (int i = arrayOffset, j = arrayOffset + positionCount - 1; i < j; i++, j--) {
-      RLEPatternColumn valueTmp = values[i];
+    int startIndex = getCurIndex(arrayOffset);
+    int endIndex = getCurIndex(arrayOffset + positionCount - 1);
+    int leftGap = arrayOffset - patternOffsetIndex[startIndex];
+    int rightGap = patternOffsetIndex[endIndex + 1] - (arrayOffset + positionCount);
+
+    for (int i = startIndex, j = endIndex; i < j; i++, j--) {
+      Column valueTmp = values[i];
       values[i] = values[j];
       values[j] = valueTmp;
       values[i].reverse();
       values[j].reverse();
     }
-    if (valueIsNull != null) {
-      for (int i = arrayOffset, j = arrayOffset + positionCount - 1; i < j; i++, j--) {
-        boolean isNullTmp = valueIsNull[i];
-        valueIsNull[i] = valueIsNull[j];
-        valueIsNull[j] = isNullTmp;
-      }
+
+    if ((startIndex + endIndex) % 2 == 0) {
+      values[(startIndex + endIndex) / 2].reverse();
+    }
+    arrayOffset = arrayOffset - leftGap + rightGap;
+
+    // reverse patternOffsetIndex
+    patternOffsetIndex[startIndex] = 0;
+    int[] patternOffsetIndexTmp = Arrays.copyOf(patternOffsetIndex, patternOffsetIndex.length);
+    for (int i = startIndex + 1, j = endIndex; i <= endIndex; i++, j--) {
+      patternOffsetIndex[i] = patternOffsetIndex[i - 1] + patternOffsetIndexTmp[j];
     }
   }
 
@@ -513,16 +513,31 @@ public class RLEColumn implements Column {
     return INSTANCE_SIZE;
   }
 
-  // position correspoding to the index in raw data
-  public void updateValue(int position, Object value) {
-    int index = 0;
-    int accumulator = 0;
-    for (index = 0; index < this.positionCount; index++) {
-      if (accumulator + values[arrayOffset + index].getPositionCount() > position) {
-        break;
-      }
-      accumulator += values[arrayOffset + index].getPositionCount();
-    }
-    values[arrayOffset + index].getObjects()[position - accumulator] = value;
-  }
+  // public int getLogicPositionCount(int index) {
+  //   int startIndex = getCurIndex(arrayOffset);
+  //   int endIndex = getCurIndex(arrayOffset + positionCount -1);
+
+  //   if (index < 0 || startIndex + index > endIndex) {
+  //     throw new IllegalArgumentException(
+  //         "getLogicPositionCount index: "
+  //             + index
+  //             + " is illegal. Only "
+  //             + (endIndex - startIndex + 1)
+  //             + "valid patterns");
+  //   }
+
+  //   if(startIndex == endIndex){
+  //     return positionCount;
+  //   }else if(index == 0){
+  //     return patternOffsetIndex[startIndex + 1] - arrayOffset;
+  //   }else if(index == endIndex){
+  //     return arrayOffset + positionCount - patternOffsetIndex[endIndex];
+  //   }else{
+  //     return patternOffsetIndex[startIndex + index + 1] - patternOffsetIndex[startIndex + index];
+  //   }
+  // }
+
+  // public int getPatternCount() {
+  //   return getCurIndex(arrayOffset + positionCount -1) - getCurIndex(arrayOffset) + 1;
+  // }
 }

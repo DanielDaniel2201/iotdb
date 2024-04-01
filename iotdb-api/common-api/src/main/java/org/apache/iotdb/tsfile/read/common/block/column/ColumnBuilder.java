@@ -55,11 +55,6 @@ public interface ColumnBuilder {
     throw new UnsupportedOperationException(getClass().getName());
   }
 
-  /** Write a RLEPattern to the current entry; */
-  default ColumnBuilder writeRLEPattern(Column column, int index) {
-    throw new UnsupportedOperationException(getClass().getName());
-  }
-
   /** Write a TsPrimitiveType sequences to the current entry; */
   default ColumnBuilder writeTsPrimitiveType(TsPrimitiveType value) {
     throw new UnsupportedOperationException(getClass().getName());

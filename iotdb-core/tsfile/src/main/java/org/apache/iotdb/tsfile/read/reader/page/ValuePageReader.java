@@ -390,13 +390,77 @@ public class ValuePageReader {
     }
   }
 
+  // public void writeColumnBuilderWithNextRLEBatch(int readStartIndex, int readEndIndex,
+  // ColumnBuilder columnBuilder){
+  //   if(!(columnBuilder instanceof RLEColumnBuilder)){
+  //     columnBuilder = new RLEColumnBuilder(null, 1, columnBuilder.getDataType());
+  //   }
+  //   int skipCount = 0; // record how many values should be skipped.
+  //   for (int i = 0; i < readStartIndex; i++) {
+  //     if (((bitmap[i / 8] & 0xFF) & (MASK >>> (i % 8))) == 0) {
+  //       continue;
+  //     }
+  //     skipCount ++;
+  //   }
+  //   RLEPattern aPattern = valueDecoder.readRLEPattern(valueBuffer, dataType);
+  //   int patternLength = aPattern.getLogicPositionCount();
+  //   Column valueColumn;
+  //   while(skipCount > 0){
+  //     if(skipCount >= patternLength){
+  //       skipCount -= patternLength;
+  //       aPattern = valueDecoder.readRLEPattern(valueBuffer, dataType);
+  //       patternLength = aPattern.getLogicPositionCount();
+  //     }else{
+  //       aPattern.subColumn(skipCount);
+  //       skipCount = 0;
+  //     }
+  //   }
+
+  //   int readIndex = readStartIndex ;
+  //   while(readIndex < readEndIndex){
+  //     valueColumn = aPattern.getValue();
+  //     patternLength = aPattern.getLogicPositionCount();
+  //     int len = readIndex + patternLength - 1 < readEndIndex ? patternLength : readEndIndex -
+  // readIndex;
+  //     int got =
+  //     if(valueColumn.getPositionCount() == 1){
+
+  //     }else{
+  //       ColumnBuilder valueColumnbuilder =
+  //         contructColumnBuilder(Collections.singletonList(dataType))[0];
+  //       for(int i = 0; i < len ; i ++ , readIndex ++){
+  //         if (((bitmap[readIndex / 8] & 0xFF) & (MASK >>> (readIndex % 8))) == 0) {
+  //           columnBuilder.appendNull();
+  //           continue;
+  //         }
+
+  //       }
+
+  //     }
+  //     aPattern = valueDecoder.readRLEPattern(valueBuffer, dataType);
+  //   }
+
+  //   for (int i = readStartIndex; i < readEndIndex; i++) {
+  //     if (((bitmap[i / 8] & 0xFF) & (MASK >>> (i % 8))) == 0) {
+  //       columnBuilder.appendNull();
+  //       continue;
+  //     }
+  //     boolean aBoolean = valueDecoder.readBoolean(valueBuffer);
+  //     columnBuilder.writeBoolean(aBoolean);
+  //   }
+
+  // }
+
   public void writeColumnBuilderWithNextBatch(
       int readStartIndex, int readEndIndex, ColumnBuilder columnBuilder) {
     if (valueBuffer == null) {
       columnBuilder.appendNull(readEndIndex - readStartIndex);
       return;
     }
-
+    // if(valueDecoder instanceof RleDecoder || valueDecoder instanceof DictionaryDecoder){
+    //   writeColumnBuilderWithNextRLEBatch(readStartIndex,readEndIndex,columnBuilder);
+    //   return;
+    // }
     switch (dataType) {
       case BOOLEAN:
         // skip useless data

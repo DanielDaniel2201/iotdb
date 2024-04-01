@@ -22,7 +22,10 @@ package org.apache.iotdb.db.queryengine.transformation.dag.column.unary;
 import org.apache.iotdb.db.queryengine.transformation.dag.column.ColumnTransformer;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.type.Type;
+import org.apache.iotdb.tsfile.utils.Pair;
 
 public class IsNullColumnTransformer extends UnaryColumnTransformer {
 
@@ -36,6 +39,39 @@ public class IsNullColumnTransformer extends UnaryColumnTransformer {
 
   @Override
   protected void doTransform(Column column, ColumnBuilder columnBuilder) {
+    if (column instanceof RLEColumn) {
+      Pair<Column[], int[]> rlePatterns = ((RLEColumn) column).getVisibleColumns();
+      Column[] columns = rlePatterns.getLeft();
+      int[] logicPositionCounts = rlePatterns.getRight();
+      int patternCount = columns.length;
+      if (!(columnBuilder instanceof RLEColumnBuilder)) {
+        columnBuilder = new RLEColumnBuilder(null, patternCount, returnType.getTypeEnum());
+      }
+      for (int i = 0, n = patternCount; i < n; i++) {
+        if (columns[i].getPositionCount() == 1) {
+          ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+          if (!columns[i].isNull(0)) {
+            returnType.writeBoolean(columnBuilderTmp, columns[i].isNull(0) ^ isNot);
+          } else {
+            columnBuilderTmp.appendNull();
+          }
+          ((RLEColumnBuilder) columnBuilder)
+              .writeRLEPattern(columnBuilderTmp.build(), logicPositionCounts[i]);
+        } else {
+          ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(logicPositionCounts[i]);
+          for (int j = 0; j < logicPositionCounts[i]; j++) {
+            if (!columns[i].isNull(j)) {
+              returnType.writeBoolean(columnBuilderTmp, columns[i].isNull(j) ^ isNot);
+            } else {
+              columnBuilderTmp.appendNull();
+            }
+          }
+          ((RLEColumnBuilder) columnBuilder)
+              .writeRLEPattern(columnBuilderTmp.build(), logicPositionCounts[i]);
+        }
+      }
+      return;
+    }
     for (int i = 0, n = column.getPositionCount(); i < n; i++) {
       returnType.writeBoolean(columnBuilder, column.isNull(i) ^ isNot);
     }
