@@ -25,9 +25,9 @@ import org.apache.iotdb.tsfile.file.metadata.statistics.Statistics;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
-import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.utils.BitMap;
+import org.apache.iotdb.tsfile.utils.Pair;
 import org.apache.iotdb.tsfile.utils.TsPrimitiveType;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -256,35 +256,33 @@ public class LastValueAccumulator implements Accumulator {
 
   protected void addIntInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              updateIntLastValue(curPattern.getInt(0), column[0].getLong(curIndex));
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                updateIntLastValue(curPattern.getInt(j), column[0].getLong(curIndex));
-              }
+            updateIntLastValue(curPattern.getInt(0), column[0].getLong(curIndex));
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              updateIntLastValue(curPattern.getInt(j), column[0].getLong(curIndex));
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -308,35 +306,33 @@ public class LastValueAccumulator implements Accumulator {
 
   protected void addLongInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              updateLongLastValue(curPattern.getLong(0), column[0].getLong(curIndex));
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                updateLongLastValue(curPattern.getLong(j), column[0].getLong(curIndex));
-              }
+            updateLongLastValue(curPattern.getLong(0), column[0].getLong(curIndex));
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              updateLongLastValue(curPattern.getLong(j), column[0].getLong(curIndex));
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -360,35 +356,33 @@ public class LastValueAccumulator implements Accumulator {
 
   protected void addFloatInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              updateFloatLastValue(curPattern.getFloat(0), column[0].getLong(curIndex));
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                updateFloatLastValue(curPattern.getFloat(j), column[0].getLong(curIndex));
-              }
+            updateFloatLastValue(curPattern.getFloat(0), column[0].getLong(curIndex));
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              updateFloatLastValue(curPattern.getLong(j), column[0].getLong(curIndex));
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -412,35 +406,33 @@ public class LastValueAccumulator implements Accumulator {
 
   protected void addDoubleInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              updateDoubleLastValue(curPattern.getDouble(0), column[0].getLong(curIndex));
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                updateDoubleLastValue(curPattern.getDouble(j), column[0].getLong(curIndex));
-              }
+            updateDoubleLastValue(curPattern.getDouble(0), column[0].getLong(curIndex));
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              updateDoubleLastValue(curPattern.getDouble(j), column[0].getLong(curIndex));
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -464,35 +456,33 @@ public class LastValueAccumulator implements Accumulator {
 
   protected void addBooleanInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              updateBooleanLastValue(curPattern.getBoolean(0), column[0].getLong(curIndex));
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                updateBooleanLastValue(curPattern.getBoolean(j), column[0].getLong(curIndex));
-              }
+            updateBooleanLastValue(curPattern.getBoolean(0), column[0].getLong(curIndex));
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              updateBooleanLastValue(curPattern.getBoolean(j), column[0].getLong(curIndex));
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -516,35 +506,33 @@ public class LastValueAccumulator implements Accumulator {
 
   protected void addBinaryInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              updateBinaryLastValue(curPattern.getBinary(0), column[0].getLong(curIndex));
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                updateBinaryLastValue(curPattern.getBinary(j), column[0].getLong(curIndex));
-              }
+            updateBinaryLastValue(curPattern.getBinary(0), column[0].getLong(curIndex));
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              updateBinaryLastValue(curPattern.getBinary(j), column[0].getLong(curIndex));
             }
           }
         }
+        i++;
       }
       return;
     }
