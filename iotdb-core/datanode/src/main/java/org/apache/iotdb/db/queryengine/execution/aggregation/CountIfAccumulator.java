@@ -25,6 +25,7 @@ import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
+import org.apache.iotdb.tsfile.utils.Pair;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -50,6 +51,82 @@ public class CountIfAccumulator implements Accumulator {
   // Column should be like: | Time | Value |
   @Override
   public void addInput(Column[] column, BitMap bitMap, int lastIndex) {
+    if (column[1] instanceof RLEColumn) {
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          if (bitMap == null || bitMap.getRegion(curIndex, curPatternLength).isAllMarked()) {
+            if (curPattern.getBoolean(0)) {
+              keep += curPatternLength;
+              lastPointIsSatisfy = true;
+            } else {
+              if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
+                countValue += curPatternLength;
+              }
+              keep = 0;
+              lastPointIsSatisfy = false;
+            }
+            curIndex += curPatternLength;
+          } else {
+            int validCount = 0;
+            for (int j = 0; j < curPatternLength; j++, curIndex++) {
+              if (bitMap != null && !bitMap.isMarked(curIndex)) {
+                continue;
+              }
+              validCount++;
+            }
+            if (curPattern.getBoolean(0)) {
+              keep += validCount;
+              lastPointIsSatisfy = true;
+            } else {
+              if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
+                countValue += validCount;
+              }
+              keep = 0;
+              lastPointIsSatisfy = false;
+            }
+            curIndex += curPatternLength;
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (curPattern.isNull(j)) {
+              if (!this.ignoreNull) {
+                // data point segment was over, judge whether to count
+                if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
+                  countValue++;
+                }
+                keep = 0;
+                lastPointIsSatisfy = false;
+              }
+            } else {
+              if (curPattern.getBoolean(j)) {
+                keep++;
+                lastPointIsSatisfy = true;
+              } else {
+                // data point segment was over, judge whether to count
+                if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
+                  countValue++;
+                }
+                keep = 0;
+                lastPointIsSatisfy = false;
+              }
+            }
+          }
+        }
+        i++;
+      }
+      return;
+    }
     for (int i = 0; i <= lastIndex; i++) {
       // skip null value in control column
       // the input parameter 'bitMap' and 'lastIndex' effects on ControlColumn

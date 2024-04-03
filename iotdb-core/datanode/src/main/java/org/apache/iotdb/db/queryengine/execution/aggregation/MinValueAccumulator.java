@@ -25,8 +25,8 @@ import org.apache.iotdb.tsfile.file.metadata.statistics.Statistics;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
-import org.apache.iotdb.tsfile.read.common.block.column.RLEPatternColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
+import org.apache.iotdb.tsfile.utils.Pair;
 import org.apache.iotdb.tsfile.utils.TsPrimitiveType;
 
 import org.slf4j.Logger;
@@ -231,40 +231,37 @@ public class MinValueAccumulator implements Accumulator {
 
   private void addIntInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          int curValue = -1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              curValue = curPattern.getInt(0);
-              updateIntResult(curValue);
-              curIndex = curIndex - j + curPatternCount;
-              break;
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                curValue = curPattern.getInt(j);
-                updateIntResult(curValue);
-              }
+            int curValue = curPattern.getInt(0);
+            updateIntResult(curValue);
+            curIndex = curIndex - j + curPatternLength;
+            break;
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              int curValue = curPattern.getInt(j);
+              updateIntResult(curValue);
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -287,40 +284,37 @@ public class MinValueAccumulator implements Accumulator {
 
   private void addLongInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          long curValue = -1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              curValue = curPattern.getLong(0);
-              updateLongResult(curValue);
-              curIndex = curIndex - j + curPatternCount;
-              break;
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                curValue = curPattern.getLong(j);
-                updateLongResult(curValue);
-              }
+            long curValue = curPattern.getLong(0);
+            updateLongResult(curValue);
+            curIndex = curIndex - j + curPatternLength;
+            break;
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              long curValue = curPattern.getLong(j);
+              updateLongResult(curValue);
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -344,40 +338,37 @@ public class MinValueAccumulator implements Accumulator {
 
   private void addFloatInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          float curValue = -1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              curValue = curPattern.getFloat(0);
-              updateFloatResult(curValue);
-              curIndex = curIndex - j + curPatternCount;
-              break;
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                curValue = curPattern.getFloat(j);
-                updateFloatResult(curValue);
-              }
+            float curValue = curPattern.getFloat(0);
+            updateFloatResult(curValue);
+            curIndex = curIndex - j + curPatternLength;
+            break;
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              float curValue = curPattern.getFloat(j);
+              updateFloatResult(curValue);
             }
           }
         }
+        i++;
       }
       return;
     }
@@ -400,40 +391,37 @@ public class MinValueAccumulator implements Accumulator {
 
   private void addDoubleInput(Column[] column, BitMap bitMap, int lastIndex) {
     if (column[1] instanceof RLEColumn) {
-      int curIndex = 0;
-      int positionCount = column[1].getPositionCount();
-      int curPatternCount = 0;
-      for (int i = 0; i < positionCount; i++) {
-        if (!((RLEColumn) column[1]).isNullRLE(i)) {
-          RLEPatternColumn curPattern = ((RLEColumn) column[1]).getRLEPattern(i);
-          curPatternCount = curPattern.getPositionCount();
-          curPatternCount =
-              curIndex + curPatternCount - 1 <= lastIndex
-                  ? curPatternCount
-                  : lastIndex - curIndex + 1;
-          double curValue = -1;
-          if (curPattern.isRLEMode()) {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              curValue = curPattern.getDouble(0);
-              updateDoubleResult(curValue);
-              curIndex = curIndex - j + curPatternCount;
-              break;
+      Pair<Column[], int[]> patterns = ((RLEColumn) column[1]).getVisibleColumns();
+      int curIndex = 0, i = 0;
+      while (curIndex <= lastIndex) {
+        Column curPattern = patterns.getLeft()[i];
+        int curPatternLength = patterns.getRight()[i];
+        curPatternLength =
+            curIndex + curPatternLength - 1 <= lastIndex
+                ? curPatternLength
+                : lastIndex - curIndex + 1;
+        if (curPattern.getPositionCount() == 1) {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
             }
-          } else {
-            for (int j = 0; j < curPatternCount; j++, curIndex++) {
-              if (bitMap != null && !bitMap.isMarked(curIndex)) {
-                continue;
-              }
-              if (!curPattern.isNull(j)) {
-                curValue = curPattern.getDouble(j);
-                updateDoubleResult(curValue);
-              }
+            double curValue = curPattern.getDouble(0);
+            updateDoubleResult(curValue);
+            curIndex = curIndex - j + curPatternLength;
+            break;
+          }
+        } else {
+          for (int j = 0; j < curPatternLength; j++, curIndex++) {
+            if (bitMap != null && !bitMap.isMarked(curIndex)) {
+              continue;
+            }
+            if (!curPattern.isNull(j)) {
+              double curValue = curPattern.getDouble(j);
+              updateDoubleResult(curValue);
             }
           }
         }
+        i++;
       }
       return;
     }
