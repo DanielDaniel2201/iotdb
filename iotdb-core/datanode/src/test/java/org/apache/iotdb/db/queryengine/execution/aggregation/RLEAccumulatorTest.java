@@ -632,7 +632,7 @@ public class RLEAccumulatorTest {
     Assert.assertEquals(1000, BytesUtils.bytesToLong(result, Long.BYTES));
     Assert.assertEquals(496.52999, BytesUtils.bytesToDouble(result, Long.BYTES), 0.001);
     Assert.assertEquals(
-      8.333234910000008E7, BytesUtils.bytesToDouble(result, (Long.BYTES + Double.BYTES)), 0.001);
+        8.333234910000008E7, BytesUtils.bytesToDouble(result, (Long.BYTES + Double.BYTES)), 0.001);
 
     stddevAccumulator.addIntermediate(
         new Column[] {

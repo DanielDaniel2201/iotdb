@@ -26,6 +26,7 @@ import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
 import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
 import org.apache.iotdb.tsfile.utils.BitMap;
 import org.apache.iotdb.tsfile.utils.Pair;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,8 @@ public class CountAccumulator implements Accumulator {
             curIndex + curPatternLength - 1 <= lastIndex
                 ? curPatternLength
                 : lastIndex - curIndex + 1;
-        if ((!curPattern.mayHaveNull()) && (bitMap == null || bitMap.getRegion(curIndex, curPatternLength).isAllMarked())) {
+        if ((!curPattern.mayHaveNull())
+            && (bitMap == null || bitMap.getRegion(curIndex, curPatternLength).isAllMarked())) {
           countValue += curPatternLength;
           curIndex += curPatternLength;
         } else {

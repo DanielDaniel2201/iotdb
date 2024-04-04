@@ -59,7 +59,7 @@ public class MinTimeAccumulator implements Accumulator {
             return;
           }
         } else {
-            for (int j = 0; j <= curPatternLength; j++, curIndex++) {
+          for (int j = 0; j <= curPatternLength; j++, curIndex++) {
             if (bitMap != null && !bitMap.isMarked(curIndex)) {
               continue;
             }
