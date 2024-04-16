@@ -54,12 +54,10 @@ public class TimeDurationAccumulator implements Accumulator {
             if (bitMap != null && !bitMap.isMarked(curIndex)) {
               continue;
             }
-            long curValue = curPattern.getLong(0);
+            long curTime = column[0].getLong(curIndex);
             initResult = true;
-            updateMaxTime(curValue);
-            updateMinTime(curValue);
-            curIndex = curIndex - j + curPatternLength;
-            break;
+            updateMaxTime(curTime);
+            updateMinTime(curTime);
           }
         } else {
           for (int j = 0; j < curPatternLength; j++, curIndex++) {
@@ -67,14 +65,16 @@ public class TimeDurationAccumulator implements Accumulator {
               continue;
             }
             if (!curPattern.isNull(j)) {
-              long curValue = curPattern.getLong(j);
+              long curTime = column[0].getLong(curIndex);
               initResult = true;
-              updateMaxTime(curValue);
-              updateMinTime(curValue);
+              updateMaxTime(curTime);
+              updateMinTime(curTime);
             }
           }
         }
+        i++;
       }
+      return;
     }
     for (int i = 0; i <= lastIndex; i++) {
       if (bitMap != null && !bitMap.isMarked(i)) {

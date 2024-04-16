@@ -31,10 +31,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class CountIfAccumulator implements Accumulator {
 
-  // number of the point segment that satisfies the KEEP expression
+  // number of the data points that satisfy the KEEP expression
   private long countValue = 0;
 
-  // number of the continues data points satisfy IF expression
+  // number of the continuous data points that satisfy IF expression
   private long keep;
 
   private final AccumulatorFactory.KeepEvaluator keepEvaluator;
@@ -68,7 +68,7 @@ public class CountIfAccumulator implements Accumulator {
               lastPointIsSatisfy = true;
             } else {
               if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
-                countValue += curPatternLength;
+                countValue++;
               }
               keep = 0;
               lastPointIsSatisfy = false;
@@ -87,7 +87,7 @@ public class CountIfAccumulator implements Accumulator {
               lastPointIsSatisfy = true;
             } else {
               if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
-                countValue += validCount;
+                countValue++;
               }
               keep = 0;
               lastPointIsSatisfy = false;
@@ -151,7 +151,6 @@ public class CountIfAccumulator implements Accumulator {
           if (lastPointIsSatisfy && keepEvaluator.apply(keep)) {
             countValue++;
           }
-
           keep = 0;
           lastPointIsSatisfy = false;
         }
