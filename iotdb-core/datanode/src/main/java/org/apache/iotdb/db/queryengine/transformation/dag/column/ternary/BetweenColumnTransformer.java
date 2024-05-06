@@ -23,8 +23,12 @@ import org.apache.iotdb.db.queryengine.transformation.dag.column.ColumnTransform
 import org.apache.iotdb.db.queryengine.transformation.dag.util.TransformUtils;
 import org.apache.iotdb.tsfile.read.common.block.column.Column;
 import org.apache.iotdb.tsfile.read.common.block.column.ColumnBuilder;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumn;
+import org.apache.iotdb.tsfile.read.common.block.column.RLEColumnBuilder;
+import org.apache.iotdb.tsfile.read.common.block.column.RunLengthEncodedColumn;
 import org.apache.iotdb.tsfile.read.common.type.BinaryType;
 import org.apache.iotdb.tsfile.read.common.type.Type;
+import org.apache.iotdb.tsfile.utils.Pair;
 
 public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
   private final boolean isNotBetween;
@@ -41,6 +45,129 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
 
   @Override
   protected void doTransform(
+    Column firstColumn,
+    Column secondColumn,
+    Column thirdColumn,
+    ColumnBuilder builder,
+    int positionCount
+  ) {
+    if (firstColumn instanceof RLEColumn && secondColumn instanceof RunLengthEncodedColumn && thirdColumn instanceof RunLengthEncodedColumn) {
+      doTransformRCC(firstColumn, secondColumn, thirdColumn, builder, positionCount);
+      return;
+    }
+    doTransformElse(firstColumn, secondColumn, thirdColumn, builder, positionCount);
+  }
+
+  private void doTransformRCC(
+    Column firstColumn,
+    Column secondColumn,
+    Column thirdColumn,
+    ColumnBuilder builder,
+    int positionCount) {
+      Pair<Column[], int[]> leftPatterns = ((RLEColumn) firstColumn).getVisibleColumns();
+      int leftPatternsCount = leftPatterns.getLeft().length;
+      int leftIndex = 0, curLeft = 0, curLeftPositionCount = 0;
+      Column leftPatternColumn = leftPatterns.getLeft()[0];
+      int index = 0;
+      int length = 0;
+
+      while (index < positionCount) {
+        if (curLeft == curLeftPositionCount) {
+          if (leftIndex + 1 < leftPatternsCount) {
+            curLeft = 0;
+            leftPatternColumn = leftPatterns.getLeft()[leftIndex];
+            curLeftPositionCount = leftPatterns.getRight()[leftIndex];
+            leftIndex++;
+          } else {
+            throw new RuntimeException(
+              "The positionCount of rightColumn is less than the requested positionCount");
+          }
+        }
+
+        length = 
+            curLeftPositionCount - curLeft > positionCount - index
+            ? positionCount - index
+            : curLeftPositionCount - curLeft;
+        if (leftPatternColumn.getPositionCount() == 1) {
+          ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+          boolean flag = false;
+          if (!leftPatternColumn.isNull(0)) {
+            if (firstColumnTransformer.getType() instanceof BinaryType) {
+              flag = 
+                  ((TransformUtils.compare(
+                                 firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
+                                 secondColumnTransformer.getType().getBinary(secondColumn, 0))
+                              >= 0)
+                          && (TransformUtils.compare(
+                                  firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
+                                  thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
+                                  <= 0))
+                      ^ isNotBetween;
+            } else {
+              flag = 
+                  ((Double.compare(
+                                 firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
+                                 secondColumnTransformer.getType().getDouble(secondColumn, 0))
+                              >= 0)
+                          && (Double.compare(
+                                  firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
+                                  thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
+                                  <= 0))
+                      ^ isNotBetween;
+              }
+              returnType.writeBoolean(columnBuilderTmp, flag);
+          } else {
+            columnBuilderTmp.appendNull();
+          }
+          ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
+          index += length;
+          curLeft += length;
+        } else {
+          ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+          boolean flag = false;
+          if (firstColumnTransformer.getType() instanceof BinaryType) {
+            for (int i = 0; i < length; i++, curLeft++, index++) {
+              if (!leftPatternColumn.isNull(curLeft)) {
+                flag = 
+                ((TransformUtils.compare(
+                               firstColumnTransformer.getType().getBinary(leftPatternColumn, curLeft),
+                               secondColumnTransformer.getType().getBinary(secondColumn, 0))
+                            >= 0)
+                        && (TransformUtils.compare(
+                                firstColumnTransformer.getType().getBinary(leftPatternColumn, curLeft),
+                                thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
+                                <= 0))
+                    ^ isNotBetween;
+              } else {
+                columnBuilderTmp.appendNull();
+              }
+              returnType.writeBoolean(columnBuilderTmp, flag);
+            }
+          } else {
+            for (int i = 0; i < length; i++, curLeft++, index++) {
+              if (!leftPatternColumn.isNull(curLeft)) {
+                flag = 
+                ((Double.compare(
+                               firstColumnTransformer.getType().getDouble(leftPatternColumn, curLeft),
+                               secondColumnTransformer.getType().getDouble(secondColumn, 0))
+                            >= 0)
+                        && (Double.compare(
+                                firstColumnTransformer.getType().getDouble(leftPatternColumn, curLeft),
+                                thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
+                                <= 0))
+                    ^ isNotBetween;
+              } else {
+                columnBuilderTmp.appendNull();
+              }
+              returnType.writeBoolean(columnBuilderTmp, flag);
+            }
+          }
+          ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
+        }
+      }
+    }
+
+  private void doTransformElse(
       Column firstColumn,
       Column secondColumn,
       Column thirdColumn,
