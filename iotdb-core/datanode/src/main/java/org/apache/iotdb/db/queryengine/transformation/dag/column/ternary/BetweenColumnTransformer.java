@@ -177,9 +177,11 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
             && !midPatternColumn.isNull(0)
             && !rightPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
+            flag =
+                flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
           } else {
-            flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
+            flag =
+                flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -197,7 +199,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -206,7 +210,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -226,7 +232,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -235,7 +243,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -255,7 +265,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -264,7 +276,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -284,7 +298,14 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
               if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
-                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn,
+                        0,
+                        midPatternColumn,
+                        curMid,
+                        rightPatternColumn,
+                        curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -293,7 +314,14 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
               if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
-                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn,
+                        0,
+                        midPatternColumn,
+                        curMid,
+                        rightPatternColumn,
+                        curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -312,7 +340,14 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
-                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn,
+                        curLeft,
+                        midPatternColumn,
+                        0,
+                        rightPatternColumn,
+                        curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -321,7 +356,14 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
-                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn,
+                        curLeft,
+                        midPatternColumn,
+                        0,
+                        rightPatternColumn,
+                        curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -340,7 +382,14 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
-                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn,
+                        curLeft,
+                        midPatternColumn,
+                        curMid,
+                        rightPatternColumn,
+                        0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -349,7 +398,14 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
-                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn,
+                        curLeft,
+                        midPatternColumn,
+                        curMid,
+                        rightPatternColumn,
+                        0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -369,9 +425,23 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
               && !midPatternColumn.isNull(curMid)
               && !rightPatternColumn.isNull(curRight)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, curRight);
+              flag =
+                  flagForBinaryComp(
+                      leftPatternColumn,
+                      curLeft,
+                      midPatternColumn,
+                      curMid,
+                      rightPatternColumn,
+                      curRight);
             } else {
-              flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, curRight);
+              flag =
+                  flagForDoubleComp(
+                      leftPatternColumn,
+                      curLeft,
+                      midPatternColumn,
+                      curMid,
+                      rightPatternColumn,
+                      curRight);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -472,7 +542,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -481,7 +553,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -500,7 +574,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -509,7 +585,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -527,9 +605,13 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
           if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, curMid, thirdColumn, 0);
+              flag =
+                  flagForBinaryComp(
+                      leftPatternColumn, curLeft, midPatternColumn, curMid, thirdColumn, 0);
             } else {
-              flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, curMid, thirdColumn, 0);
+              flag =
+                  flagForDoubleComp(
+                      leftPatternColumn, curLeft, midPatternColumn, curMid, thirdColumn, 0);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -629,7 +711,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForBinaryComp(
+                        firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -638,7 +722,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForDoubleComp(
+                        firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -657,7 +743,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -666,7 +754,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -684,9 +774,13 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
           if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
+              flag =
+                  flagForBinaryComp(
+                      firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
             } else {
-              flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
+              flag =
+                  flagForDoubleComp(
+                      firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -786,7 +880,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag = flagForBinaryComp(leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -795,7 +891,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag = flagForDoubleComp(leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -814,7 +912,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
+                flag =
+                    flagForBinaryComp(
+                        leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -823,7 +923,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
+                flag =
+                    flagForDoubleComp(
+                        leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -841,9 +943,13 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
           if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, curRight);
+              flag =
+                  flagForBinaryComp(
+                      leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, curRight);
             } else {
-              flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, curRight);
+              flag =
+                  flagForDoubleComp(
+                      leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, curRight);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -914,7 +1020,8 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         if (firstColumnTransformer.getType() instanceof BinaryType) {
           for (int i = 0; i < length; i++, curRight++, index++) {
             if (!rightPatternColumn.isNull(curRight)) {
-              flag = flagForBinaryComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
+              flag =
+                  flagForBinaryComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -923,7 +1030,8 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         } else {
           for (int i = 0; i < length; i++, curRight++, index++) {
             if (!rightPatternColumn.isNull(curRight)) {
-              flag = flagForDoubleComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
+              flag =
+                  flagForDoubleComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1116,7 +1224,13 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
     }
   }
 
-  private boolean flagForBinaryComp(Column firstColumn, int firstPos, Column secondColumn, int secondPos, Column thirdColumn, int thirdPos) {
+  private boolean flagForBinaryComp(
+      Column firstColumn,
+      int firstPos,
+      Column secondColumn,
+      int secondPos,
+      Column thirdColumn,
+      int thirdPos) {
     return ((TransformUtils.compare(
                     firstColumnTransformer.getType().getBinary(firstColumn, firstPos),
                     secondColumnTransformer.getType().getBinary(secondColumn, secondPos))
@@ -1128,8 +1242,13 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         ^ isNotBetween;
   }
 
-
-  private boolean flagForDoubleComp(Column firstColumn, int firstPos, Column secondColumn, int secondPos, Column thirdColumn, int thirdPos) {
+  private boolean flagForDoubleComp(
+      Column firstColumn,
+      int firstPos,
+      Column secondColumn,
+      int secondPos,
+      Column thirdColumn,
+      int thirdPos) {
     return ((Double.compare(
                     firstColumnTransformer.getType().getDouble(firstColumn, firstPos),
                     secondColumnTransformer.getType().getDouble(secondColumn, secondPos))
