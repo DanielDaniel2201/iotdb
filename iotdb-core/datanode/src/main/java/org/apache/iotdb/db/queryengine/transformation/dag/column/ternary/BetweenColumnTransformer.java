@@ -177,27 +177,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
             && !midPatternColumn.isNull(0)
             && !rightPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getBinary(midPatternColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getDouble(midPatternColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -215,24 +197,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -241,24 +206,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -278,24 +226,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, curMid))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -304,24 +235,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, curMid))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -341,24 +255,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -367,24 +264,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -404,24 +284,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
               if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, curMid))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -430,24 +293,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
               if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, curMid))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -466,24 +312,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -492,24 +321,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -528,24 +340,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, curMid))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -554,24 +349,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
               if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, curMid))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -591,43 +369,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
               && !midPatternColumn.isNull(curMid)
               && !rightPatternColumn.isNull(curRight)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getBinary(midPatternColumn, curMid))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getBinary(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, curRight);
             } else {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getDouble(midPatternColumn, curMid))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getDouble(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, curMid, rightPatternColumn, curRight);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -709,27 +453,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         boolean flag = false;
         if (!leftPatternColumn.isNull(0) && !midPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getBinary(midPatternColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, 0, thirdColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getDouble(midPatternColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, 0, thirdColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -746,22 +472,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, curMid))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -770,22 +481,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, curMid))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -804,22 +500,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -828,22 +509,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -861,39 +527,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
           if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getBinary(midPatternColumn, curMid))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(leftPatternColumn, curLeft, midPatternColumn, curMid, thirdColumn, 0);
             } else {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getDouble(midPatternColumn, curMid))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(leftPatternColumn, curLeft, midPatternColumn, curMid, thirdColumn, 0);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -974,27 +610,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         boolean flag = false;
         if (!midPatternColumn.isNull(0) && !rightPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                secondColumnTransformer.getType().getBinary(midPatternColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                secondColumnTransformer.getType().getDouble(midPatternColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, 0, rightPatternColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -1011,20 +629,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1033,20 +638,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1065,20 +657,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getBinary(midPatternColumn, curMid))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1087,20 +666,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curMid++, index++) {
               if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                    secondColumnTransformer
-                                        .getType()
-                                        .getDouble(midPatternColumn, curMid))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1118,35 +684,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
           if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getBinary(midPatternColumn, curMid))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getBinary(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
             } else {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getDouble(midPatternColumn, curMid))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getDouble(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, curRight);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -1227,27 +767,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         boolean flag = false;
         if (!leftPatternColumn.isNull(0) && !rightPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -1264,22 +786,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1288,22 +795,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curRight++, index++) {
               if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, 0),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, curRight))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1322,22 +814,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    ((TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                                >= 0)
-                            && (TransformUtils.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getBinary(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getBinary(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1346,22 +823,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
           } else {
             for (int i = 0; i < length; i++, curLeft++, index++) {
               if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    ((Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                                >= 0)
-                            && (Double.compare(
-                                    firstColumnTransformer
-                                        .getType()
-                                        .getDouble(leftPatternColumn, curLeft),
-                                    thirdColumnTransformer
-                                        .getType()
-                                        .getDouble(rightPatternColumn, 0))
-                                <= 0))
-                        ^ isNotBetween;
+                flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
               } else {
                 columnBuilderTmp.appendNull();
               }
@@ -1379,39 +841,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
           if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
             if (firstColumnTransformer.getType() instanceof BinaryType) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getBinary(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, curRight);
             } else {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getDouble(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, curRight);
             }
             returnType.writeBoolean(columnBuilderTmp, flag);
           } else {
@@ -1465,27 +897,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         boolean flag = false;
         if (!rightPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(rightPatternColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -1500,18 +914,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         if (firstColumnTransformer.getType() instanceof BinaryType) {
           for (int i = 0; i < length; i++, curRight++, index++) {
             if (!rightPatternColumn.isNull(curRight)) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                  secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getBinary(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1520,18 +923,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         } else {
           for (int i = 0; i < length; i++, curRight++, index++) {
             if (!rightPatternColumn.isNull(curRight)) {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                  secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer.getType().getDouble(secondColumn, 0),
-                                  thirdColumnTransformer
-                                      .getType()
-                                      .getDouble(rightPatternColumn, curRight))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1585,27 +977,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         boolean flag = false;
         if (!midPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                secondColumnTransformer.getType().getBinary(midPatternColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, 0, thirdColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                secondColumnTransformer.getType().getDouble(midPatternColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, 0, thirdColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -1620,18 +994,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         if (firstColumnTransformer.getType() instanceof BinaryType) {
           for (int i = 0; i < length; i++, curMid++, index++) {
             if (!midPatternColumn.isNull(curMid)) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getBinary(midPatternColumn, curMid))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer.getType().getBinary(firstColumn, 0),
-                                  thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1640,18 +1003,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         } else {
           for (int i = 0; i < length; i++, curMid++, index++) {
             if (!midPatternColumn.isNull(curMid)) {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer.getType().getDouble(firstColumn, 0),
-                                  secondColumnTransformer
-                                      .getType()
-                                      .getDouble(midPatternColumn, curMid))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer.getType().getDouble(secondColumn, 0),
-                                  thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1705,27 +1057,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         boolean flag = false;
         if (!leftPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
-            flag =
-                ((TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                            >= 0)
-                        && (TransformUtils.compare(
-                                firstColumnTransformer.getType().getBinary(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForBinaryComp(leftPatternColumn, 0, secondColumn, 0, thirdColumn, 0);
           } else {
-            flag =
-                ((Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                            >= 0)
-                        && (Double.compare(
-                                firstColumnTransformer.getType().getDouble(leftPatternColumn, 0),
-                                thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                            <= 0))
-                    ^ isNotBetween;
+            flag = flagForDoubleComp(leftPatternColumn, 0, secondColumn, 0, thirdColumn, 0);
           }
           returnType.writeBoolean(columnBuilderTmp, flag);
         } else {
@@ -1740,20 +1074,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         if (firstColumnTransformer.getType() instanceof BinaryType) {
           for (int i = 0; i < length; i++, curLeft++, index++) {
             if (!leftPatternColumn.isNull(curLeft)) {
-              flag =
-                  ((TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  secondColumnTransformer.getType().getBinary(secondColumn, 0))
-                              >= 0)
-                          && (TransformUtils.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getBinary(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer.getType().getBinary(thirdColumn, 0))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, thirdColumn, 0);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1762,20 +1083,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         } else {
           for (int i = 0; i < length; i++, curLeft++, index++) {
             if (!leftPatternColumn.isNull(curLeft)) {
-              flag =
-                  ((Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  secondColumnTransformer.getType().getDouble(secondColumn, 0))
-                              >= 0)
-                          && (Double.compare(
-                                  firstColumnTransformer
-                                      .getType()
-                                      .getDouble(leftPatternColumn, curLeft),
-                                  thirdColumnTransformer.getType().getDouble(thirdColumn, 0))
-                              <= 0))
-                      ^ isNotBetween;
+              flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, thirdColumn, 0);
             } else {
               columnBuilderTmp.appendNull();
             }
@@ -1797,32 +1105,39 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
       if (!firstColumn.isNull(i) && !secondColumn.isNull(i) && !thirdColumn.isNull(i)) {
         boolean flag;
         if (firstColumnTransformer.getType() instanceof BinaryType) {
-          flag =
-              ((TransformUtils.compare(
-                              firstColumnTransformer.getType().getBinary(firstColumn, i),
-                              secondColumnTransformer.getType().getBinary(secondColumn, i))
-                          >= 0)
-                      && (TransformUtils.compare(
-                              firstColumnTransformer.getType().getBinary(firstColumn, i),
-                              thirdColumnTransformer.getType().getBinary(thirdColumn, i))
-                          <= 0))
-                  ^ isNotBetween;
+          flag = flagForBinaryComp(firstColumn, i, secondColumn, i, thirdColumn, i);
         } else {
-          flag =
-              ((Double.compare(
-                              firstColumnTransformer.getType().getDouble(firstColumn, i),
-                              secondColumnTransformer.getType().getDouble(secondColumn, i))
-                          >= 0)
-                      && (Double.compare(
-                              firstColumnTransformer.getType().getDouble(firstColumn, i),
-                              thirdColumnTransformer.getType().getDouble(thirdColumn, i))
-                          <= 0))
-                  ^ isNotBetween;
+          flag = flagForDoubleComp(firstColumn, i, secondColumn, i, thirdColumn, i);
         }
         returnType.writeBoolean(builder, flag);
       } else {
         builder.appendNull();
       }
     }
+  }
+
+  private boolean flagForBinaryComp(Column firstColumn, int firstPos, Column secondColumn, int secondPos, Column thirdColumn, int thirdPos) {
+    return ((TransformUtils.compare(
+                    firstColumnTransformer.getType().getBinary(firstColumn, firstPos),
+                    secondColumnTransformer.getType().getBinary(secondColumn, secondPos))
+                >= 0)
+            && (TransformUtils.compare(
+                    firstColumnTransformer.getType().getBinary(firstColumn, firstPos),
+                    thirdColumnTransformer.getType().getBinary(thirdColumn, thirdPos))
+                <= 0))
+        ^ isNotBetween;
+  }
+
+
+  private boolean flagForDoubleComp(Column firstColumn, int firstPos, Column secondColumn, int secondPos, Column thirdColumn, int thirdPos) {
+    return ((Double.compare(
+                    firstColumnTransformer.getType().getDouble(firstColumn, firstPos),
+                    secondColumnTransformer.getType().getDouble(secondColumn, secondPos))
+                >= 0)
+            && (Double.compare(
+                    firstColumnTransformer.getType().getDouble(firstColumn, firstPos),
+                    thirdColumnTransformer.getType().getDouble(thirdColumn, thirdPos))
+                <= 0))
+        ^ isNotBetween;
   }
 }
