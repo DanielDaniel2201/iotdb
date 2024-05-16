@@ -30,12 +30,12 @@ import org.apache.iotdb.tsfile.read.common.type.BinaryType;
 import org.apache.iotdb.tsfile.read.common.type.Type;
 import org.apache.iotdb.tsfile.utils.Pair;
 
-// import org.slf4j.LoggerFactory;
-// import org.slf4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
   private final boolean isNotBetween;
-  // private final static Logger logger = LoggerFactory.getLogger(BetweenColumnTransformer.class);
+  private static final Logger logger = LoggerFactory.getLogger(BetweenColumnTransformer.class);
 
   public BetweenColumnTransformer(
       Type returnType,
@@ -54,6 +54,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
       Column thirdColumn,
       ColumnBuilder builder,
       int positionCount) {
+    logger.info("pass through modified doTransform");
     if (firstColumn instanceof RLEColumn
         && secondColumn instanceof RunLengthEncodedColumn
         && thirdColumn instanceof RunLengthEncodedColumn) {
