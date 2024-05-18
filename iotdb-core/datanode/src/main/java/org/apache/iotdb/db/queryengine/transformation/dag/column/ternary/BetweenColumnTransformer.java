@@ -194,106 +194,43 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         curMid += length;
         curRight += length;
       } else if (isRLELeft && isRLEMid) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!leftPatternColumn.isNull(0) && !midPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curRight++, index++) {
-              if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curRight++, index++) {
-              if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverRightCol(leftPatternColumn, midPatternColumn, rightPatternColumn, curRight, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curLeft += length;
         curMid += length;
+        curRight += length;
+        index += length;
       } else if (isRLELeft && isRLERight) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!leftPatternColumn.isNull(0) && !rightPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curMid++, index++) {
-              if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curMid++, index++) {
-              if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverMidCol(leftPatternColumn, midPatternColumn, rightPatternColumn, curMid, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curLeft += length;
         curRight += length;
+        curMid += length;
+        index += length;
       } else if (isRLEMid && isRLERight) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!midPatternColumn.isNull(0) && !rightPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curLeft++, index++) {
-              if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curLeft++, index++) {
-              if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, curLeft, midPatternColumn, 0, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverLeftCol(leftPatternColumn, midPatternColumn, rightPatternColumn, curLeft, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curMid += length;
         curRight += length;
+        curLeft += length;
+        index += length;
       } else if (isRLELeft) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         if (!leftPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
@@ -335,7 +272,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curLeft += length;
       } else if (isRLEMid) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         if (!midPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
@@ -377,7 +314,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curMid += length;
       } else if (isRLERight) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         if (!rightPatternColumn.isNull(0)) {
           if (firstColumnTransformer.getType() instanceof BinaryType) {
@@ -419,7 +356,7 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curRight += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         for (int i = 0; i < length; i++, curLeft++, curMid++, curRight++, index++) {
           if (!leftPatternColumn.isNull(curLeft)
@@ -537,71 +474,29 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         curLeft += length;
         curMid += length;
       } else if (isRLELeft) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!leftPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curMid++, index++) {
-              if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curMid++, index++) {
-              if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverMidCol(leftPatternColumn, midPatternColumn, thirdColumn, curMid, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curLeft += length;
+        curMid += length;
+        index += length;
       } else if (isRLEMid) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!midPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curLeft++, index++) {
-              if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curLeft++, index++) {
-              if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, curLeft, midPatternColumn, 0, thirdColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverLeftCol(leftPatternColumn, midPatternColumn, thirdColumn, curLeft, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curMid += length;
+        curLeft += length;
+        index += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         for (int i = 0; i < length; i++, curLeft++, curMid++, index++) {
           if (!leftPatternColumn.isNull(curLeft) && !midPatternColumn.isNull(curMid)) {
@@ -706,71 +601,29 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         curRight += length;
         curMid += length;
       } else if (isRLEMid) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!midPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curRight++, index++) {
-              if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    flagForBinaryComp(
-                        firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curRight++, index++) {
-              if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    flagForDoubleComp(
-                        firstColumn, 0, midPatternColumn, 0, rightPatternColumn, curRight);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverRightCol(firstColumn, midPatternColumn, rightPatternColumn, curRight, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curMid += length;
+        curRight += length;
+        index += length;
       } else if (isRLERight) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!rightPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curMid++, index++) {
-              if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    flagForBinaryComp(
-                        firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curMid++, index++) {
-              if (!midPatternColumn.isNull(curMid)) {
-                flag =
-                    flagForDoubleComp(
-                        firstColumn, 0, midPatternColumn, curMid, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverMidCol(firstColumn, midPatternColumn, rightPatternColumn, curMid, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curRight += length;
+        curMid += length;
+        index += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         for (int i = 0; i < length; i++, curMid++, curRight++, index++) {
           if (!midPatternColumn.isNull(curMid) && !rightPatternColumn.isNull(curRight)) {
@@ -875,71 +728,29 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         curRight += length;
         curLeft += length;
       } else if (isRLELeft) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!leftPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curRight++, index++) {
-              if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curRight++, index++) {
-              if (!rightPatternColumn.isNull(curRight)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverRightCol(leftPatternColumn, secondColumn, rightPatternColumn, curRight, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curLeft += length;
+        curRight += length;
+        index += length;
       } else if (isRLERight) {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         if (!rightPatternColumn.isNull(0)) {
-          if (firstColumnTransformer.getType() instanceof BinaryType) {
-            for (int i = 0; i < length; i++, curLeft++, index++) {
-              if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    flagForBinaryComp(
-                        leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          } else {
-            for (int i = 0; i < length; i++, curLeft++, index++) {
-              if (!leftPatternColumn.isNull(curLeft)) {
-                flag =
-                    flagForDoubleComp(
-                        leftPatternColumn, curLeft, secondColumn, 0, rightPatternColumn, 0);
-              } else {
-                columnBuilderTmp.appendNull();
-              }
-              returnType.writeBoolean(columnBuilderTmp, flag);
-            }
-          }
+          IterOverLeftCol(leftPatternColumn, secondColumn, rightPatternColumn, curLeft, length, columnBuilderTmp);
         } else {
           columnBuilderTmp.appendNull();
         }
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
         curRight += length;
+        curLeft += length;
+        index += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
         boolean flag = false;
         for (int i = 0; i < length; i++, curLeft++, curRight++, index++) {
           if (!leftPatternColumn.isNull(curLeft) && !rightPatternColumn.isNull(curRight)) {
@@ -1016,30 +827,11 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         index += length;
         curRight += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
-        if (firstColumnTransformer.getType() instanceof BinaryType) {
-          for (int i = 0; i < length; i++, curRight++, index++) {
-            if (!rightPatternColumn.isNull(curRight)) {
-              flag =
-                  flagForBinaryComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
-            } else {
-              columnBuilderTmp.appendNull();
-            }
-            returnType.writeBoolean(columnBuilderTmp, flag);
-          }
-        } else {
-          for (int i = 0; i < length; i++, curRight++, index++) {
-            if (!rightPatternColumn.isNull(curRight)) {
-              flag =
-                  flagForDoubleComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
-            } else {
-              columnBuilderTmp.appendNull();
-            }
-            returnType.writeBoolean(columnBuilderTmp, flag);
-          }
-        }
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
+        IterOverRightCol(firstColumn, secondColumn, rightPatternColumn, curRight, length, columnBuilderTmp);
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
+        curRight += length;
+        index += length;
       }
     }
   }
@@ -1098,28 +890,11 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         index += length;
         curMid += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
-        if (firstColumnTransformer.getType() instanceof BinaryType) {
-          for (int i = 0; i < length; i++, curMid++, index++) {
-            if (!midPatternColumn.isNull(curMid)) {
-              flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
-            } else {
-              columnBuilderTmp.appendNull();
-            }
-            returnType.writeBoolean(columnBuilderTmp, flag);
-          }
-        } else {
-          for (int i = 0; i < length; i++, curMid++, index++) {
-            if (!midPatternColumn.isNull(curMid)) {
-              flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
-            } else {
-              columnBuilderTmp.appendNull();
-            }
-            returnType.writeBoolean(columnBuilderTmp, flag);
-          }
-        }
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
+        IterOverMidCol(firstColumn, midPatternColumn, thirdColumn, curMid, length, columnBuilderTmp);
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
+        curMid += length;
+        index += length;
       }
     }
   }
@@ -1178,28 +953,11 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
         index += length;
         curLeft += length;
       } else {
-        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(1);
-        boolean flag = false;
-        if (firstColumnTransformer.getType() instanceof BinaryType) {
-          for (int i = 0; i < length; i++, curLeft++, index++) {
-            if (!leftPatternColumn.isNull(curLeft)) {
-              flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, thirdColumn, 0);
-            } else {
-              columnBuilderTmp.appendNull();
-            }
-            returnType.writeBoolean(columnBuilderTmp, flag);
-          }
-        } else {
-          for (int i = 0; i < length; i++, curLeft++, index++) {
-            if (!leftPatternColumn.isNull(curLeft)) {
-              flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, thirdColumn, 0);
-            } else {
-              columnBuilderTmp.appendNull();
-            }
-            returnType.writeBoolean(columnBuilderTmp, flag);
-          }
-        }
+        ColumnBuilder columnBuilderTmp = returnType.createColumnBuilder(length);
+        IterOverLeftCol(leftPatternColumn, secondColumn, thirdColumn, curLeft, length, columnBuilderTmp);
         ((RLEColumnBuilder) builder).writeRLEPattern(columnBuilderTmp.build(), length);
+        curLeft += length;
+        index += length;
       }
     }
   }
@@ -1259,5 +1017,74 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
                     thirdColumnTransformer.getType().getDouble(thirdColumn, thirdPos))
                 <= 0))
         ^ isNotBetween;
+  }
+
+  private void IterOverRightCol(Column firstColumn, Column secondColumn, Column rightPatternColumn, int curRight, int length, ColumnBuilder columnBuilder) {
+    boolean flag = false;
+    if (firstColumnTransformer.getType() instanceof BinaryType) {
+      for (int i = 0; i < length; i++, curRight++) {
+        if (!rightPatternColumn.isNull(curRight)) {
+          flag = flagForBinaryComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
+        } else {
+          columnBuilder.appendNull();
+        }
+        returnType.writeBoolean(columnBuilder, flag);
+      }
+    } else {
+      for (int i = 0; i < length; i++, curRight++) {
+        if (!rightPatternColumn.isNull(curRight)) {
+          flag = flagForDoubleComp(firstColumn, 0, secondColumn, 0, rightPatternColumn, curRight);
+        } else {
+          columnBuilder.appendNull();
+        }
+        returnType.writeBoolean(columnBuilder, flag);
+      }
+    }
+  }
+
+  private void IterOverLeftCol(Column leftPatternColumn, Column secondColumn, Column thirdColumn, int curLeft, int length, ColumnBuilder columnBuilder) {
+    boolean flag = false;
+    if (firstColumnTransformer.getType() instanceof BinaryType) {
+      for (int i = 0; i < length; i++, curLeft++) {
+        if (!leftPatternColumn.isNull(curLeft)) {
+          flag = flagForBinaryComp(leftPatternColumn, curLeft, secondColumn, 0, thirdColumn, 0);
+        } else {
+          columnBuilder.appendNull();
+        }
+        returnType.writeBoolean(columnBuilder, flag);
+      }
+    } else {
+      for (int i = 0; i < length; i++, curLeft++) {
+        if (!leftPatternColumn.isNull(curLeft)) {
+          flag = flagForDoubleComp(leftPatternColumn, curLeft, secondColumn, 0, thirdColumn, 0);
+        } else {
+          columnBuilder.appendNull();
+        }
+        returnType.writeBoolean(columnBuilder, flag);
+      }
+    }
+  }
+
+  private void IterOverMidCol(Column firstColumn, Column midPatternColumn, Column thirdColumn, int curMid, int length, ColumnBuilder columnBuilder) {
+    boolean flag = false;
+    if (firstColumnTransformer.getType() instanceof BinaryType) {
+      for (int i = 0; i < length; i++, curMid++) {
+        if (!midPatternColumn.isNull(curMid)) {
+          flag = flagForBinaryComp(firstColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
+        } else {
+          columnBuilder.appendNull();
+        }
+        returnType.writeBoolean(columnBuilder, flag);
+      }
+    } else {
+      for (int i = 0; i < length; i++, curMid++) {
+        if (!midPatternColumn.isNull(curMid)) {
+          flag = flagForDoubleComp(firstColumn, 0, midPatternColumn, curMid, thirdColumn, 0);
+        } else {
+          columnBuilder.appendNull();
+        }
+        returnType.writeBoolean(columnBuilder, flag);
+      }
+    }
   }
 }
