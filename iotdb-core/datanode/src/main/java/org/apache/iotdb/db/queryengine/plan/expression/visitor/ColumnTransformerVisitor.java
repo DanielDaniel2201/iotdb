@@ -502,6 +502,8 @@ public class ColumnTransformerVisitor
       Type returnType) {
     if (expression.getExpressionType() == BETWEEN) {
       BetweenExpression betweenExpression = (BetweenExpression) expression;
+      System.out.println("[info]: got expression with type BETWEEN (print)");
+      LOGGER.info("[info]: got expression with type BETWEEN (logger)");
       return new BetweenColumnTransformer(
           returnType,
           firstColumnTransformer,

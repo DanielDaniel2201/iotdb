@@ -44,8 +44,9 @@ public class BetweenColumnTransformer extends CompareTernaryColumnTransformer {
       ColumnTransformer thirdColumnTransformer,
       boolean isNotBetween) {
     super(returnType, firstColumnTransformer, secondColumnTransformer, thirdColumnTransformer);
+    System.out.println("[info]:pass through BetweenColumnTransformer --println");
+    logger.info("[info]: pass through BetweenColumnTransformer constructor -- logger");
     this.isNotBetween = isNotBetween;
-    logger.info("pass through BetweenColumnTransformer constructor");
   }
 
   @Override
